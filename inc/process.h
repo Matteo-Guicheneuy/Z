@@ -17,14 +17,15 @@
 class Process
 {
 public:
-  Process()  { };
-  Process(const std::string&, double, int);
+  Process() : usePDFAnzat(false) { };
+  Process(const std::string&, double, int, const bool);
   ~Process() { };
 
   // Kinematical quantities and scales
   double sh;            // Hadronic center of mass energy
   int xs_id;            // Cross section ID 0=LO, 1=NLO, 2=Resummed, 3=Expanded 
   std::string pdf;      // PDF identifier
+  const bool usePDFAnzat;     // Use PDF Anzat or not
 
   // PDF handler
   const LHAPDF::PDF* F;

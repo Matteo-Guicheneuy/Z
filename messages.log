@@ -1,65 +1,24 @@
  ** INFO: PDF Paths:.
- ** INFO:   /usr/local/share/LHAPDF.
- ** INFO:   /usr/local/share/LHAPDF.
+ ** INFO:   /home/matteo/LHAPDF/share/LHAPDF.
+ ** INFO:   /home/matteo/LHAPDF/share/LHAPDF.
  ** INFO: Available PDFs:.
  ** INFO:   CT14lo.
  ** INFO:   CT18NLO.
- ** INFO:   NNPDF23_lo_as_0130_qed.
- ** INFO:   NNPDF23_nlo_as_0118_qed.
- ** INFO:   NNPDF23_nlo_as_0119.
- ** INFO:   NNPDF23_nlo_as_0119_qed.
- ** INFO:   NNPDF30_lo_as_0118.
- ** INFO:   NNPDF30_nlo_as_0118.
- ** INFO:   NNPDF31_lo_as_0118.
- ** INFO:   NNPDF31_nlo_as_0118.
- ** INFO:   NNPDF40_lo_as_01180.
- ** INFO:   NNPDF40_nlo_as_01180.
- ** INFO:   cteq6l1.
  ** INFO: Initializing the collision setup.
  ** INFO: Processing kID = 2, ic = 0.
  ** INFO: -init results: 0 +/- 0 pb  (@ 0.00%).
- ** INFO: Warm-up results: 0 +/- 0 pb  (@ 0.00%).
- ** INFO: Refine-1 results: 0 +/- 0 pb  (@ 0.00%).
- ** INFO: final results: 0 +/- 0 pb  (@ 0.00%).
- ** INFO: kID = 2, duration=2.125617s, sc = 300.000000.
+ ** INFO: Warm-up results: 44.8514 +/- 1.56294 pb  (@ 3.48%).
+ ** INFO: Refine-1 results: 46.3896 +/- 0.00285357 pb  (@ 0.01%).
+ ** INFO: final results: 46.3896 +/- 0.00285357 pb  (@ 0.01%).
+ ** INFO: kID = 2, duration=1.086599s, sc = 300.000000.
  ** INFO: Initializing the collision setup.
  ** INFO: Processing kID = 3, ic = 0.
- ** INFO: kID = 3, duration=0.031042s, sc = 300.000000.
+ ** INFO: kID = 3, duration=0.009241s, sc = 300.000000.
  ** INFO: Initializing the collision setup.
  ** INFO: Processing kID = 4, ic = 0.
  ** INFO: -init results: 0 +/- 0 pb  (@ 0.00%).
- ** INFO: Warm-up results: -87.4344 +/- 2.61796 pb  (@ 2.99%).
- ** INFO: Refine-1 results: -86.493 +/- 0.470164 pb  (@ 0.54%).
- ** INFO: final results: -86.493 +/- 0.470164 pb  (@ 0.54%).
- ** INFO: kID = 4, duration=0.070674s, sc = 300.000000.
- ** INFO: Initializing the collision setup.
- ** INFO: Processing kID = 5, ic = 0.
- ** INFO: -init results: 0 +/- 0 pb  (@ 0.00%).
- ** INFO: Warm-up results: -112.196 +/- 3.36335 pb  (@ 3.00%).
- ** INFO: Refine-1 results: nan +/- 0 pb  (@ nan%).
- ** INFO: final results: nan +/- 0 pb  (@ nan%).
- ** INFO: kID = 5, duration=0.087741s, sc = 300.000000.
- ** INFO: Initializing the collision setup.
- ** INFO: Processing kID = 2, ic = 1.
- ** INFO: -init results: 0 +/- 0 pb  (@ 0.00%).
- ** INFO: Warm-up results: 0 +/- 0 pb  (@ 0.00%).
- ** INFO: Refine-1 results: 0 +/- 0 pb  (@ 0.00%).
- ** INFO: final results: 0 +/- 0 pb  (@ 0.00%).
- ** INFO: kID = 2, duration=2.140469s, sc = 675.163770.
- ** INFO: Initializing the collision setup.
- ** INFO: Processing kID = 3, ic = 1.
- ** INFO: kID = 3, duration=0.029710s, sc = 675.163770.
- ** INFO: Initializing the collision setup.
- ** INFO: Processing kID = 4, ic = 1.
- ** INFO: -init results: 0 +/- 0 pb  (@ 0.00%).
- ** INFO: Warm-up results: -1264.93 +/- 35.285 pb  (@ 2.79%).
- ** INFO: Refine-1 results: -1246.23 +/- 2.44447 pb  (@ 0.20%).
- ** INFO: final results: -1246.23 +/- 2.44447 pb  (@ 0.20%).
- ** INFO: kID = 4, duration=0.068511s, sc = 675.163770.
- ** INFO: Initializing the collision setup.
- ** INFO: Processing kID = 5, ic = 1.
- ** INFO: -init results: 0 +/- 0 pb  (@ 0.00%).
- ** INFO: Warm-up results: -1632.62 +/- 48.7126 pb  (@ 2.98%).
- ** INFO: Refine-1 results: -1597.37 +/- 3.07608 pb  (@ 0.19%).
- ** INFO: final results: -1597.37 +/- 3.07608 pb  (@ 0.19%).
- ** INFO: kID = 5, duration=0.087867s, sc = 675.163770.
+ ** INFO: Warm-up results: 39.4294 +/- 2.68407 pb  (@ 6.81%).
+ ** INFO: Refine-1 results: 45.6453 +/- 0.194833 pb  (@ 0.43%).
+ ** INFO: Refine-2 results: 45.7358 +/- 0.0371457 pb  (@ 0.08%).
+ ** INFO: final results: 45.7358 +/- 0.0371457 pb  (@ 0.08%).
+ ** INFO: kID = 4, duration=0.545175s, sc = 300.000000.

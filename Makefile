@@ -5,11 +5,15 @@ FF=gfortran## for Fortran
 ###  Directories ###
 SRCDIR=${PWD}/src
 INCDIR=${PWD}/inc
+LHAPDFDIR=$//home/matteo/LHAPDF/include
+LHAPDFDIR2=$//home/matteo/LHAPDF/share/LHAPDF
 LIBDIR=${PWD}/lib
 BLDDIR=${PWD}/bld
+GSLDIR=$//home/matteo/gsl-2.8
+BOOSTDIR=$//usr/include/boost
 
 ### Flags ###
-CFLAG=-O3 -Wall -std=c++11 -I${INCDIR}
+CFLAG=-O3 -Wall -I${INCDIR} -I${LHAPDFDIR} -I${LHAPDFDIR2} -I${GSLDIR} -I${BOOSTDIR}
 FFLAG=-O3 -I${INCDIR}
 
 ### Paths ###
@@ -25,15 +29,16 @@ FOBJS=$(subst .f,.o,$(subst ${SRCDIR},${BLDDIR},${FFILES}))
 
 ### Libraries ###
 LIB=${LIBDIR}/libresum.a
-GSLIB=-lgsl -lgslcblas
-LHAPDFLIB= -L/usr/local/lib -lLHAPDF
+GSLIB=-L/usr/lib/x86_64-linux-gnu -lgsl -lgslcblas
+STLIB= -L/usr/lib/gcc/x86_64-linux-gnu/13 -lm -lgfortran 
+LHAPDFLIB= -L/home/matteo/LHAPDF/lib -lLHAPDF
 
 ### Commands ###
 all: RUN
 lib: ${LIB}
 
 RUN: main.cpp ${LIB}
-	${CC} ${CFLAG} -o $@ main.cpp ${LIB} ${GSLIB} ${LHAPDFLIB}
+	${CC} ${CFLAG} -o $@ main.cpp ${LIB} ${STLIB} ${GSLIB} ${LHAPDFLIB}
 
 ${LIB}:	${COBJS} ${FOBJS}
 	ar -ruc $@ ${BLDDIR}/*.o

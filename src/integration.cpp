@@ -42,14 +42,16 @@ void PerformIntegration(double& res, double& err, double& chi, Process* proc, si
   double precision = 1e9;
   int counter = 1;
   size_t calls = 10000;
-  while(precision>1e-2 && counter<=10)
+  while(precision>1e-3 && counter<=10)
   {
     std::string label = "Refine-" + std::to_string(counter);
+    std::cout << "new round" << std::endl;
     gsl_monte_vegas_integrate(&I, xmin, xmax, dim, calls, r, s, &res, &err);
     precision = std::abs(err / res);
     DisplayXsec(res, err, label);
     counter++;
     calls *= 5;
+    std::cout << counter << std::endl;
   }
 
   // Final display

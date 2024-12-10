@@ -3,14 +3,21 @@
 // ************************************************************************* //
 // -------- Standard headers -------------------------- //
 #include <fstream>        // File streams               //
+#include <cstring>        // In/Out streams             //
+#include <cmath>      	// Mathematical functions       //
+#include <math.h>
+#include <complex>
+
 // -------- Classes ----------------------------------- //
 #include "messages.h"     // Message services           //
 #include "LHAPDF/LHAPDF.h"// LHAPDF
 
+
+
 void PDFInit()
 {
   // Init
-  const std::string pathstr = "/usr/local/share/LHAPDF";
+  const std::string pathstr = "/home/matteo/LHAPDF/share/LHAPDF";
   LHAPDF::setPaths(pathstr);
 
   info("PDF Paths:");
@@ -59,4 +66,42 @@ void OpenFiles(std::vector<std::ofstream>& files, const std::vector<std::string>
 
 void CloseFiles(std::vector<std::ofstream>& files)
   { for (auto& file : files) file.close(); }
+
+std::complex<double> Psi(std::complex<double> N)
+{
+  std::complex<double> res(0.,0.);
+  while(real(N)<10.) { res=res-1./N; N=N+1.; }
+  res=res+log(N)-1./(2.*N)-pow(N,-2.)/2520.*(210.+pow(N,-2.)*(-21.+pow(N,-2.)*10.));
+  return res;
+}
+
+std::complex<double> HarmonicNumber(std::complex<double> N)
+{
+  std::complex<double> res(0.,0.);
+  res=(Psi(N+1.-Psi(1.)))/N;
+  return res;
+}
+//const double Gamma = 0.57721566490153286060;
+
+// Complex Digamma function using series expansion
+std::complex<double> complex_digamma(std::complex<double> z) {
+    std::complex<double> result = -0.57721566490153286060;
+    std::complex<double> term;
+    // Series expansion for the complex digamma function
+    for (int n = 1; n <= 10; ++n) {
+        term = 1.0 / pow(z + std::complex<double>(n - 1), 1);
+        result += term;
+    }
+    return result;
+}
+
+std::complex<double> PolyGamma(int n, std::complex<double> z) {
+    std::complex<double> result = complex_digamma(z);
+    // Iterate to compute higher-order polygamma functions
+    for (int i = 0; i < n; ++i) {
+        result = -result / pow(z, 2);  // Approximate derivatives for polygamma
+    }
+    return result;
+}
+
 

@@ -48,22 +48,25 @@ int main(int argc, char* argv[])
   std::vector<std::ofstream> files(filenames.size());
   OpenFiles(files, filenames);
 
+// Use Pdf Anzat or not: //
+  const bool usePDFAnzat=false;
 
   // Main computation loop
-  for (int ic=0; ic<=1; ++ic)
+  for (int ic=0; ic<=0; ++ic)
   {
     double sc = s0 * pow(sf / s0, 1.0 * ic / nsteps);
-    for (int kID=2; kID<6; ++kID)
+    double res1 = 0, err1 = 0, res2 = 0, err2 = 0;
+    for (int kID=2; kID<=4; ++kID)
     {
       // Initialisation
       auto start = std::chrono::high_resolution_clock::now();
-      Process* proc = new Process(argv[1], sc, kID);
+      Process* proc = new Process(argv[1], sc, kID, usePDFAnzat);
       info("Processing kID = " + std::to_string(kID) + ", ic = " + std::to_string(ic));
 
       // Results
-      double res = 0, err = 0, chi = 0;
-      if (kID == 4 || kID == 5) PerformIntegration(res, err, chi, proc, 3);
-      else if (kID == 2) PerformIntegration(res, err, chi, proc, 1);
+      double res = 0, err = 0,  chi = 0;
+      if (kID==1 || kID == 4 || kID == 5) PerformIntegration(res2, err2, chi, proc, 3);
+      else if (kID == 2) PerformIntegration(res1, err1, chi, proc, 1);
 
       // Output file handling
       files[11] << "kID=" << kID << " sigma=" << res << "+/-" << err << " sc=" << sc << std::endl;
@@ -71,19 +74,20 @@ int main(int argc, char* argv[])
       {
         case 0: files[0] << res << "," << sc << std::endl; break;
         case 1: files[1] << res << "," << sc << std::endl; break;
-        case 2: files[5] << res << "+/-" << err << "," << sc << std::endl; break;
+        case 2: files[5] << res1 << "+/-" << err1 << "," << sc << std::endl; break;
         case 3: files[6] << res << "," << sc << std::endl; break;
-        case 4: files[3] << res << "+/-" << err << "," << sc << std::endl; break;
-        case 5: files[4] << res << "+/-" << err << "," << sc << std::endl; break;
+        case 4: files[3] << res2 << "+/-" << err2 << "," << sc << std::endl; break;
+        case 5: files[4] << res2 << "+/-" << err2 << "," << sc << std::endl; break;
         default: error("Invalid Process ID: kID=" + std::to_string(kID));
       }
-
       // Timer
       auto stop = std::chrono::high_resolution_clock::now();
       auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
       info("kID = " + std::to_string(kID) + ", duration=" + std::to_string(duration.count() / 1e6) + "s, sc = " +  std::to_string(sc));
       delete proc;
     }
+          std::cout << "incertitude = " << std::abs(res1-res2)/std::sqrt(err1*err1+err2*err2) << " res1 = " << res1 << " res2 = " << res2 << " err1 = " << err1 << " err2 = " << err2 <<   std::endl;
+
   }
 
   // End of the program

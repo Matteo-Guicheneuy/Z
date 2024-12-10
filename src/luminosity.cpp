@@ -8,53 +8,65 @@
 #include "luminosity.h"   // Luminosities and PDFs      //
 #include "constants.h"    // Constants                  //
 #include "coefficients.h"
+#include <iostream>
 
-double F_real(const double &x, int i0)
+double F_real(const double &x, int i0, const bool usePDFAnzat)
 {
   // PDF in real space from MSTW-like parameterisatio (eq 2.70 of Yehudi's thesis)
   return A[i0][0] * pow(x,A[i0][1]) * pow(1.-x,A[i0][2]) *
-    (1.+A[i0][3]*sqrt(x)+A[i0][4]*x+A[i0][5]*pow(x,1.5)+A[i0][6]*pow(x,2)+A[i0][7]*pow(x, 2.5));
+    (usePDFAnzat ? 1. : (1.+A[i0][3]*sqrt(x)+A[i0][4]*x+A[i0][5]*pow(x,1.5)+A[i0][6]*pow(x,2)+A[i0][7]*pow(x, 2.5)));
+
 }
 
-double F_real_bis(const double &x, int i0)
+double F_real_bis(const double &x, int i0, const bool usePDFAnzat)
 {
   // Derivative of PDF in real space
-  return A[i0][0]*pow(x,A[i0][1]+1.)*pow(1.-x,A[i0][2])*((A[i0][1]+1.-x*A[i0][2]/(1.-x))*(1.+A[i0][3]*sqrt(x)+A[i0][4]*x+A[i0][5]*pow(x,1.5)+A[i0][6]*pow(x,2.)+A[i0][7]*pow(x,2.5))+0.5*A[i0][3]*sqrt(x)+A[i0][4]*x+1.5*A[i0][5]*pow(x,1.5)+2.*A[i0][6]*pow(x,2.)+2.5*A[i0][7]*pow(x,2.5));
+  return (usePDFAnzat ?  A[i0][0]*pow(x,A[i0][1]+1.)*pow(1.-x,A[i0][2])*(A[i0][1]+1.-x*A[i0][2]/(1.-x)) :
+  A[i0][0]*pow(x,A[i0][1]+1.)*pow(1.-x,A[i0][2])*((A[i0][1]+1.-x*A[i0][2]/(1.-x))*(1.+A[i0][3]*sqrt(x)+A[i0][4]*x+A[i0][5]*pow(x,1.5)+A[i0][6]*pow(x,2.)+A[i0][7]*pow(x,2.5))+0.5*A[i0][3]*sqrt(x)+A[i0][4]*x+1.5*A[i0][5]*pow(x,1.5)+2.*A[i0][6]*pow(x,2.)+2.5*A[i0][7]*pow(x,2.5)));
 }
 
-void set_pdf(int i, const double &x, double q[5], double qbar[5])
+void set_pdf(int i, const double &x, double q[5], double qbar[5], const bool usePDFAnzat)
 {
-  const int idx_q[5] = {1, 2, 4, 7, 5};
-  const int idx_qb[5] = {3, 6, 4, 7, 5};
-  auto func = (i == 0) ? F_real : F_real_bis;
+  const int idx_q[5] = {1, 2, 4, 7, 5};  // d , u , s , c , b
+  const int idx_qb[5] = {3, 6, 4, 7, 5}; // dbar , ubar , sbar , cbar , bbar
+  //auto func = (i == 0) ? F_real : F_real_bis;
+  double (*func)(const double&, int, const bool);
+  if (i==4 || i == 0)
+    func = F_real;
+  else
+    func = F_real_bis;
 
   for (int j=0; j<5; j++)
   {
-    qbar[j] = func(x, idx_qb[j]);  // qbar for b, c, s, u
-    q[j] = func(x, idx_q[j]);    // q for b, c, s
+    qbar[j] = func(x, idx_qb[j], usePDFAnzat);  // qbar for b, c, s, u
+    q[j] = func(x, idx_q[j], usePDFAnzat);    // q for b, c, s
   }
 }
-void set_pdfN(const std::complex<double> &N, std::complex<double> q[5], std::complex<double> qbar[5], std::complex<double> &g)
+void set_pdfN(const std::complex<double> &N, std::complex<double> q[5], std::complex<double> qbar[5], std::complex<double> &g, const bool usePDFAnzat)
 {
   const int idx_q[5] = {1, 2, 4, 7, 5};
   const int idx_qb[5] = {3, 6, 4, 7, 5};
-  auto func = (std::abs(N)<140.) ? Fbis : F3;
-
+  std::complex<double> (*func)(const std::complex<double> &,const int &, const bool);
+  
+  if (std::abs(N)<140.)
+    func = Fbis;
+  else
+    func = F3;
   //PDFs
-  g=func(N,0);
+  g=func(N,0,usePDFAnzat);
   for (int j=0; j<Nflav; j++)
   {
-    qbar[j] = func(N, idx_qb[j]);  // qbar for b, c, s, u
-    q[j] = func(N, idx_q[j]);    // q for b, c, s
+    qbar[j] = func(N, idx_qb[j], usePDFAnzat);  // qbar for b, c, s, u
+    q[j] = func(N, idx_q[j], usePDFAnzat);    // q for b, c, s
   }
 }
 
 
 
-double Luminosity(const int &i, const double &xa, const double &xb, const double &a)
+double Luminosity(const int &i, const double &xa, const double &xb, const double &a, const bool usePDFAnzat)
 {
   // Variables for PDFs
-  double fAB = 0;
+  double fAB = 0.;
   double qa_plus[Nflav], qb_plus[Nflav], qbara_plus[Nflav], qbarb_plus[Nflav];
   double qa_minus[Nflav], qb_minus[Nflav], qbara_minus[Nflav], qbarb_minus[Nflav];
   double ha = 2.*eps*xa;
@@ -67,31 +79,42 @@ double Luminosity(const int &i, const double &xa, const double &xb, const double
   double xb_minus = xb*(1.-eps);
 
   // Compute PDFs for variations
-  if(i==0)  // First PDF trick
+  if(i==4 || i==0)  // First PDF trick
   {
-    set_pdf(i, xa_plus, qa_plus, qbara_plus);   // PDFs with xa+eps
-    set_pdf(i, xa_minus, qa_minus, qbara_minus); // PDFs with xa-eps
-    set_pdf(i, xb_plus, qb_plus, qbarb_plus);   // PDFs with xb+eps
-    set_pdf(i, xb_minus, qb_minus, qbarb_minus); // PDFs with xb-eps
+    set_pdf(i, xa_plus, qa_plus, qbara_plus, usePDFAnzat);   // PDFs with xa+eps
+    set_pdf(i, xa_minus, qa_minus, qbara_minus, usePDFAnzat); // PDFs with xa-eps
+    set_pdf(i, xb_plus, qb_plus, qbarb_plus, usePDFAnzat);   // PDFs with xb+eps
+    set_pdf(i, xb_minus, qb_minus, qbarb_minus, usePDFAnzat); // PDFs with xb-eps
 
     // Compute contributions to fAB
-    for (int fl = 0; fl < Nflav; fl++)
+    //for (int fl = 0; fl < (usePDFAnzat ? 1 : Nflav); fl++)
+    for (int fl = 0; (fl < (usePDFAnzat ? 1 : Nflav) && fl!=3) ; fl++)
     {
       double xa_der = (std::pow(xa_plus,-a)*qa_plus[fl]    - std::pow(xa_minus,-a)*qa_minus[fl])/ha;
       double xb_der = (std::pow(xb_plus,-a)*qbarb_plus[fl] - std::pow(xb_minus,-a)*qbarb_minus[fl])/hb;
       double xa_der_qbar = (std::pow(xa_plus,-a)*qbara_plus[fl] - std::pow(xa_minus,-a)*qbara_minus[fl])/ha;
       double xb_der_q = (std::pow(xb_plus,-a)*qb_plus[fl]       - std::pow(xb_minus,-a)*qb_minus[fl])/hb;
-      fAB += (i%2==0 ? gd : gu)*std::pow(xa,a)*std::pow(xb,a)*(xa_der*xb_der+xa_der_qbar*xb_der_q);
+      fAB += (fl%2==0 ? gd : gu)*std::pow(xa,a)*std::pow(xb,a)*(xa_der*xb_der+xa_der_qbar*xb_der_q);
+
+      if(usePDFAnzat) fAB = std::pow(xa,a)*std::pow(xb,a)*xa_der*xb_der; 
     }
+
+    
+    
   }
   else if (i == 1) // Second PDF trick
   {
     double qa[Nflav], qb[Nflav], qbara[Nflav], qbarb[Nflav];
-    set_pdf(i, xa, qa, qbara);
-    set_pdf(i, xb, qb, qbarb);
-
+    set_pdf(i, xa, qa, qbara, usePDFAnzat);
+    set_pdf(i, xb, qb, qbarb, usePDFAnzat);
     // Compute fAB contributions
-    for (int fl = 0; fl < Nflav; ++fl) fAB += (i%2==0 ? gd : gu)*(qa[fl]*qbarb[fl] + qb[fl]*qbara[fl]);
+    for (int fl = 0; fl < Nflav; ++fl) fAB += (fl%2==0 ? gd : gu)*(qa[fl]*qbarb[fl] + qb[fl]*qbara[fl]) ;
+    
+    // Remove charm quark
+    fAB-= gu*(qa[3]*qbarb[3] + qb[3]*qbara[3]);
+
+    //PDF Anzat
+    if(usePDFAnzat) fAB=qa[0]*qbarb[0];
 
     if (std::abs(fAB) > 1e4)
      info("xa = " + std::to_string(xa)  + "; xb = " + std::to_string(xb) + "; fAB = " + std::to_string(fAB));
@@ -129,9 +152,9 @@ std::complex<double> Gamma(const std::complex<double> x) {
 
 std::complex<double> B2(const std::complex<double> a, double b){ return Gamma(a)*Gamma(b)/Gamma(a+b);}
 
-std::complex<double> Fbis(const std::complex<double> &N, const int &i0)
+std::complex<double> Fbis(const std::complex<double> &N, const int &i0, const bool usePDFAnzat)
 {
-  return A[i0][0]*(B2(A[i0][1]+N,A[i0][2]+1.)+A[i0][3]*B2(A[i0][1]+N+0.5,A[i0][2]+1.)+A[i0][4]*B2(A[i0][1]+N+1.,A[i0][2]+1.)+A[i0][5]*B2(A[i0][1]+N+1.5,A[i0][2]+1.)+A[i0][6]*B2(A[i0][1]+N+2.,A[i0][2]+1.)+A[i0][7]*B2(A[i0][1]+N+2.5,A[i0][2]+1.));
+  return A[i0][0]*(B2(A[i0][1]+N,A[i0][2]+1.)+ (usePDFAnzat ? 0.0 : A[i0][3]*B2(A[i0][1]+N+0.5,A[i0][2]+1.)+A[i0][4]*B2(A[i0][1]+N+1.,A[i0][2]+1.)+A[i0][5]*B2(A[i0][1]+N+1.5,A[i0][2]+1.)+A[i0][6]*B2(A[i0][1]+N+2.,A[i0][2]+1.)+A[i0][7]*B2(A[i0][1]+N+2.5,A[i0][2]+1.)));
 }
 
 std::complex<double> B(const std::complex<double> &n, double a, double b)
@@ -141,9 +164,10 @@ std::complex<double> B(const std::complex<double> &n, double a, double b)
 }
 
 
-std::complex<double> F3(const std::complex<double> &N, const int &i0) // Calcul simplifié dans le cas |N| > 1e2
+std::complex<double> F3(const std::complex<double> &N, const int &i0, const bool usePDFAnzat) // Calcul simplifié dans le cas |N| > 1e2
 {
-  return A[i0][0]*Gamma(A[i0][2]+1.)*(B(N,A[i0][1],1.+A[i0][2])+B(N,A[i0][1]+0.5,1.+A[i0][2])*A[i0][3]+B(N,A[i0][1]+1.,1.+A[i0][2])*A[i0][4]+B(N,A[i0][1]+1.5,1.+A[i0][2])*A[i0][5]+B(N,A[i0][1]+2.,1.+A[i0][2])*A[i0][6]+B(N,A[i0][1]+2.5,1.+A[i0][2])*A[i0][7]);
+  return A[i0][0]*Gamma(A[i0][2]+1.)*(B(N,A[i0][1],1.+A[i0][2])+(usePDFAnzat ? 0.0 : B(N,A[i0][1]+0.5,1.+A[i0][2])*A[i0][3]+B(N,A[i0][1]+1.,1.+A[i0][2])*A[i0][4]+B(N,A[i0][1]+1.5,1.+A[i0][2])*A[i0][5]+B(N,A[i0][1]+2.,1.+A[i0][2])*A[i0][6]+B(N,A[i0][1]+2.5,1.+A[i0][2])*A[i0][7]));
 }
+
 
 
