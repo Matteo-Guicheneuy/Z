@@ -13,8 +13,7 @@
 std::complex<double> set_hat_cross_section(const std::complex<double> &N, const int &id)
 {
   // Numerical stability safeguard
-  //if (abs(N) > 140.) return 0.;
-
+  if (abs(N) > 10.) return 0.;
   // Variables
   std::complex<double> Nb=N*exp(-Psi(1.)), lambda0=alpha_s/(2.*M_PI)*beta0*log(Nb);
   const double sigma0 = 2./3.*alpha*pow(M_PI/MZ,2);// eq (A.6): Cf*alpha*pi²/(2*Mz²), the rest in the PDFs
@@ -37,21 +36,32 @@ std::complex<double> set_hat_cross_section(const std::complex<double> &N, const 
   return H*std::exp(g1*log(Nb)+g2);
 
   //test
-  //g1 = Gamma_0/beta0*lambda0;
-  //return H*std::exp(g1*log(Nb));
+  //std::cout << "g1'= " << 1./beta0*Gamma_0 << " g1''=" << 1./beta0*Gamma_0* (1./(2.*lambda0)-1.)*sudakov_log << " g1=" << 1./beta0*Gamma_0 + 1./beta0*Gamma_0* (1./(2.*lambda0)-1.)*sudakov_log << std::endl;
+  //g1 = 1./beta0*Gamma_0;
+  //std::complex<double> g1bis = 1./beta0*Gamma_0* (1./(2.*lambda0)-1.)*sudakov_log;
+
+  //return H*std::exp(g1*log(Nb))*std::exp(g1bis*log(Nb)+g2);
+  //return H*std::pow(g1*log(Nb),3)/6.;
+  
   
 }
 
-std::complex<double> set_hat_NLO_cross_section (const std::complex<double> N, void *prm)// dsigma_hat/(dM² dphi_1) 
+
+std::complex<double> set_hat_NLO_cross_section (const std::complex<double> N, void *prm, bool qq)// dsigma_hat/(dM² dphi_1) 
 {
-  double sigma0=0, Cf=0, dZ=0, tau=0;
-  std::complex<double> Phat=0, Pbar=0;
+  double sigma0=2./3.*alpha*pow(M_PI/MZ,2), Cf=4./3., Tf=1., dZ=0;
+  std::complex<double> EulerGamma=-Psi(1.), Phat=0, Pbar=0, sigmaqg=0., sigmaqq=0.;
   Process *p = (Process *)prm;
-  tau = pow(MZ,2.)/p->sh;
+  double tau = pow(MZ,2.)/p->sh;
   Cf=4./3.;
-  sigma0=2./3.*alpha*pow(M_PI/MZ,2); 
   dZ=Cf*(-4.+pow(M_PI,2)/3.)+3.*Cf*log(MZ/muF)+4.*Cf*log(1.-tau)*log(MZ/muF)+2.*Cf*pow(log(1.-tau),2);
   Pbar=Cf*(-pow(2. + N,-2) - pow(3. + N,-2) + 2.*PolyGamma(1, 2. + N))*2.*log(MZ/muF);
-  Phat=2.*Cf*(-pow(2. + N,-2) - pow(3. + N,-2) + 2.*PolyGamma(1, 2. + N));
-  return sigma0*(1.+alpha_s/M_PI*(dZ+Pbar+Phat));
+  Phat=2.*Cf*(-(EulerGamma*(-EulerGamma - 1./(1. + N) - 1./(2. + N))) - (-7. - 3.*N*(3. + N))/pow(2. + 3.*N + pow(N,2.),2) + 
+     pow(M_PI,2)/6. - pow(log(1 - tau),2) + ((3. + 2.*N + 2.*EulerGamma*(1. + N)*(2. + N))*PolyGamma(0,1. + N))/
+      ((1. + N)*(2. + N)) - PolyGamma(1,1. + N) + pow(PolyGamma(0,1. + N),2));
+  sigmaqq=conversion_factor*sigma0*(1.+alpha_s/M_PI*(dZ+Pbar+Phat));
+
+  sigmaqg=conversion_factor*sigma0*alpha_s/M_PI*Tf*(-(pow(N,4)+pow(N,3)-11.*pow(N,11)-19.*pow(N,4)-4.)*pow((N+1.)*(N+2.)*(N+3.),-2)+(2.*log(MZ/muF)-2.*Psi(N+1.)-2.*EulerGamma)*(pow(N,2)+3.*N+4.)/(2.*(N+1.)*(N+2.)*(N+3.)));
+  
+  return qq ? sigmaqq: sigmaqg;
 }

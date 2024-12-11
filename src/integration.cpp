@@ -51,7 +51,6 @@ void PerformIntegration(double& res, double& err, double& chi, Process* proc, si
     DisplayXsec(res, err, label);
     counter++;
     calls *= 5;
-    std::cout << counter << std::endl;
   }
 
   // Final display

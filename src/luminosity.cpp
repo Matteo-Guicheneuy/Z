@@ -25,13 +25,13 @@ double F_real_bis(const double &x, int i0, const bool usePDFAnzat)
   A[i0][0]*pow(x,A[i0][1]+1.)*pow(1.-x,A[i0][2])*((A[i0][1]+1.-x*A[i0][2]/(1.-x))*(1.+A[i0][3]*sqrt(x)+A[i0][4]*x+A[i0][5]*pow(x,1.5)+A[i0][6]*pow(x,2.)+A[i0][7]*pow(x,2.5))+0.5*A[i0][3]*sqrt(x)+A[i0][4]*x+1.5*A[i0][5]*pow(x,1.5)+2.*A[i0][6]*pow(x,2.)+2.5*A[i0][7]*pow(x,2.5)));
 }
 
-void set_pdf(int i, const double &x, double q[5], double qbar[5], const bool usePDFAnzat)
+void set_pdf(int i, const double &x, double q[5], double qbar[5], double &g, const bool usePDFAnzat)
 {
   const int idx_q[5] = {1, 2, 4, 7, 5};  // d , u , s , c , b
   const int idx_qb[5] = {3, 6, 4, 7, 5}; // dbar , ubar , sbar , cbar , bbar
   //auto func = (i == 0) ? F_real : F_real_bis;
   double (*func)(const double&, int, const bool);
-  if (i==4 || i == 0)
+  if (i==5)
     func = F_real;
   else
     func = F_real_bis;
@@ -40,6 +40,7 @@ void set_pdf(int i, const double &x, double q[5], double qbar[5], const bool use
   {
     qbar[j] = func(x, idx_qb[j], usePDFAnzat);  // qbar for b, c, s, u
     q[j] = func(x, idx_q[j], usePDFAnzat);    // q for b, c, s
+    g = func(x, 0, usePDFAnzat);              // g
   }
 }
 void set_pdfN(const std::complex<double> &N, std::complex<double> q[5], std::complex<double> qbar[5], std::complex<double> &g, const bool usePDFAnzat)
@@ -69,6 +70,7 @@ double Luminosity(const int &i, const double &xa, const double &xb, const double
   double fAB = 0.;
   double qa_plus[Nflav], qb_plus[Nflav], qbara_plus[Nflav], qbarb_plus[Nflav];
   double qa_minus[Nflav], qb_minus[Nflav], qbara_minus[Nflav], qbarb_minus[Nflav];
+  double g;
   double ha = 2.*eps*xa;
   double hb = 2.*eps*xb;
 
@@ -79,12 +81,12 @@ double Luminosity(const int &i, const double &xa, const double &xb, const double
   double xb_minus = xb*(1.-eps);
 
   // Compute PDFs for variations
-  if(i==4 || i==0)  // First PDF trick
+  if(i==5)  // First PDF trick
   {
-    set_pdf(i, xa_plus, qa_plus, qbara_plus, usePDFAnzat);   // PDFs with xa+eps
-    set_pdf(i, xa_minus, qa_minus, qbara_minus, usePDFAnzat); // PDFs with xa-eps
-    set_pdf(i, xb_plus, qb_plus, qbarb_plus, usePDFAnzat);   // PDFs with xb+eps
-    set_pdf(i, xb_minus, qb_minus, qbarb_minus, usePDFAnzat); // PDFs with xb-eps
+    set_pdf(i, xa_plus, qa_plus, qbara_plus, g, usePDFAnzat);   // PDFs with xa+eps
+    set_pdf(i, xa_minus, qa_minus, qbara_minus, g, usePDFAnzat); // PDFs with xa-eps
+    set_pdf(i, xb_plus, qb_plus, qbarb_plus, g, usePDFAnzat);   // PDFs with xb+eps
+    set_pdf(i, xb_minus, qb_minus, qbarb_minus, g, usePDFAnzat); // PDFs with xb-eps
 
     // Compute contributions to fAB
     //for (int fl = 0; fl < (usePDFAnzat ? 1 : Nflav); fl++)
@@ -102,11 +104,11 @@ double Luminosity(const int &i, const double &xa, const double &xb, const double
     
     
   }
-  else if (i == 1) // Second PDF trick
+  else if (i==1 || i == 4) // Second PDF trick
   {
     double qa[Nflav], qb[Nflav], qbara[Nflav], qbarb[Nflav];
-    set_pdf(i, xa, qa, qbara, usePDFAnzat);
-    set_pdf(i, xb, qb, qbarb, usePDFAnzat);
+    set_pdf(i, xa, qa, qbara, g, usePDFAnzat);
+    set_pdf(i, xb, qb, qbarb, g, usePDFAnzat);
     // Compute fAB contributions
     for (int fl = 0; fl < Nflav; ++fl) fAB += (fl%2==0 ? gd : gu)*(qa[fl]*qbarb[fl] + qb[fl]*qbara[fl]) ;
     

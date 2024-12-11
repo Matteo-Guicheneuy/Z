@@ -11,7 +11,7 @@
 // -------- Functions --------------------------------- //
 
 std::complex<double> set_hat_cross_section(const std::complex<double>&, const int&);
-std::complex<double> set_hat_NLO_cross_section (const std::complex<double> N, void *prm);// dsigma_hat/(dM² dphi_1) 
+std::complex<double> set_hat_NLO_cross_section (const std::complex<double> N, void *prm, bool qq);// dsigma_hat/(dM² dphi_1) 
 
 //void EvolvePDF(const std::complex<double>&, std::complex<double>*, std::complex<double>*, std::complex<double>&);
 
@@ -44,7 +44,7 @@ double Resummed(double *x, size_t dim, void *prm,  bool usePDFtrick = false)
     jac *= xa*xb*pow(log(tau),2.)*x[1];
 
     // If using PDF tricks, we use a different method for setting PDFs -> luminosity
-    std::complex<double> fAB = Luminosity(5-p->xs_id, xa, xb, a, p->usePDFAnzat);  // Use PDF fit
+    std::complex<double> fAB = Luminosity(p->xs_id, xa, xb, a, p->usePDFAnzat);  // Use PDF fit
     // Adjust N for second PDF trick (xs_id 4 uses an offset) + prefactor
     if( p->xs_id==4) { N+=a+1; prefactor=pow(tau/xa/xb,-N-a)/xa/xb; }
     else prefactor=tau*pow(tau/xa/xb,-N);
@@ -53,7 +53,7 @@ double Resummed(double *x, size_t dim, void *prm,  bool usePDFtrick = false)
     g_12=pow(N+a,-2.);
 
     // Definiton of sigma_hat
-    if(p->xs_id==1) sigma=set_hat_NLO_cross_section(N, prm);
+    if(p->xs_id==1) sigma=set_hat_NLO_cross_section(N, prm,true);
     if(p->xs_id==4 || p->xs_id==5) sigma = 2.*M_PI*pow(MZ,-2)*set_hat_cross_section(N, p->xs_id);
 
     // Fake PDFs in Mellin space for the PDF trick
@@ -67,9 +67,10 @@ double Resummed(double *x, size_t dim, void *prm,  bool usePDFtrick = false)
 
     // Evaluate sigma based on NLO conditions
     if (p->xs_id==2) sigma = 2.*M_PI*pow(MZ,-2)*set_hat_cross_section(N+1., p->xs_id);
+    else if (p->xs_id==3) sigma =set_hat_NLO_cross_section(N, prm, true);
     else if (p->xs_id==6)
     {
-      // EvolvePDF(N+1., q, qbar, g);
+      //EvolvePDF(N+1., q, qbar, g);
       sigma = 2.*M_PI*pow(MZ,-2)*set_hat_cross_section(N+1., p->xs_id);
     }
 
@@ -92,7 +93,7 @@ double Tot(double *x, size_t dim, void *prm)
   // Dispatch computation based on xs_id
   switch (p->xs_id)
   {
-    case 2: return Resummed(x, dim, prm); // No collinear improvement
+    case 2: case 3: return Resummed(x, dim, prm); // No collinear improvement
     case 1: case 4: case 5: return Resummed(x, dim, prm, true); // NLO+PDF tricks // Second PDF trick // First PDF trick
     default:
         error("Invalid Process ID: ID = " + std::to_string(p->xs_id));

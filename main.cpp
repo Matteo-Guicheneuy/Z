@@ -66,7 +66,7 @@ int main(int argc, char* argv[])
       // Results
       double res = 0, err = 0,  chi = 0;
       if (kID==1 || kID == 4 || kID == 5) PerformIntegration(res2, err2, chi, proc, 3);
-      else if (kID == 2) PerformIntegration(res1, err1, chi, proc, 1);
+      else if (kID == 2 || kID == 3) PerformIntegration(res1, err1, chi, proc, 1);
 
       // Output file handling
       files[11] << "kID=" << kID << " sigma=" << res << "+/-" << err << " sc=" << sc << std::endl;
