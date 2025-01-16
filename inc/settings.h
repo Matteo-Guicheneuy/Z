@@ -24,6 +24,8 @@ std::complex<double> Psi(std::complex<double> );
 std::complex<double> HarmonicNumber(std::complex<double> );
 std::complex<double> complex_digamma(std::complex<double> );
 std::complex<double> PolyGamma(int n, std::complex<double> );
+int coefBinomial(int n, int k);
+double derive_x_k(double (* f)(double x, int i0), double x, int i0, int k, int n);
 
 
 

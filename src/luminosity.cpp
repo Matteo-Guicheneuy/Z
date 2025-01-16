@@ -3,50 +3,96 @@
 // ************************************************************************* //
 // -------- Standard headers -------------------------- //
 #include <string>     // Strings                        //
+#include <vector>
+#include <complex>
 // -------- Classes ----------------------------------- //
 #include "messages.h"     // Message services           //
 #include "luminosity.h"   // Luminosities and PDFs      //
 #include "constants.h"    // Constants                  //
-#include "coefficients.h"
+#include "coefficients.h" //
+#include "settings.h"     // Setting                    //
 #include <iostream>
 
-double F_real(const double &x, int i0, const bool usePDFAnzat)
-{
-  // PDF in real space from MSTW-like parameterisatio (eq 2.70 of Yehudi's thesis)
-  return A[i0][0] * pow(x,A[i0][1]) * pow(1.-x,A[i0][2]) *
-    (usePDFAnzat ? 1. : (1.+A[i0][3]*sqrt(x)+A[i0][4]*x+A[i0][5]*pow(x,1.5)+A[i0][6]*pow(x,2)+A[i0][7]*pow(x, 2.5)));
 
+double f(double x, int i0)
+{
+  return A[i0][0]*pow(x,A[i0][1])*pow(1.-x,A[i0][2])*(1.+A[i0][3]*sqrt(x)+A[i0][4]*x+A[i0][5]*pow(x,1.5)+A[i0][6]*pow(x,2)+A[i0][7]*pow(x, 2.5));
 }
 
-double F_real_bis(const double &x, int i0, const bool usePDFAnzat)
+double fAnzat(double x, int i0)
+{
+  return A[i0][0]*pow(x,A[i0][1])*pow(1.-x,A[i0][2]);
+}
+
+
+double F_real(const double &x, int i0, const bool usePDFAnzat, int k)
+{
+  int c=0;
+  if (x>1-4.*Eps) return 0;
+  else if(x<4.*Eps) return 0;
+
+  return usePDFAnzat ? x*derive_x_k(fAnzat,x,i0,k,c) : x*derive_x_k(f,x,i0,k,c);
+}
+
+double F_real_bis(const double &x, int i0, const bool usePDFAnzat, int k)
 {
   // Derivative of PDF in real space
-  return (usePDFAnzat ?  A[i0][0]*pow(x,A[i0][1]+1.)*pow(1.-x,A[i0][2])*(A[i0][1]+1.-x*A[i0][2]/(1.-x)) :
-  A[i0][0]*pow(x,A[i0][1]+1.)*pow(1.-x,A[i0][2])*((A[i0][1]+1.-x*A[i0][2]/(1.-x))*(1.+A[i0][3]*sqrt(x)+A[i0][4]*x+A[i0][5]*pow(x,1.5)+A[i0][6]*pow(x,2.)+A[i0][7]*pow(x,2.5))+0.5*A[i0][3]*sqrt(x)+A[i0][4]*x+1.5*A[i0][5]*pow(x,1.5)+2.*A[i0][6]*pow(x,2.)+2.5*A[i0][7]*pow(x,2.5)));
+  if(usePDFAnzat){
+    switch (k){
+       case 0 :return A[i0][0]*pow(x,A[i0][1])*pow(1.-x,A[i0][2]);
+       break;
+       case 1 :return A[i0][0]*pow(x,A[i0][1]+1.)*pow(1.-x,A[i0][2])*(A[i0][1]+1.-x*A[i0][2]/(1.-x));
+       break;
+       //case 2 :return x*(pow(1.-1.*x,A[i0][2])*pow(x,A[i0][1])*A[i0][0]*(1.+A[i0][1])-1.*pow(1.-1.*x,-1.+A[i0][2])*pow(x,1.+A[i0][1])*A[i0][0]*A[i0][2]);
+       case 2 :return x*(pow(1.-1.*x,A[i0][2])*pow(x,A[i0][1])*A[i0][0]*(1.+A[i0][1])-1.*pow(1.-1.*x,-1.+A[i0][2])*pow(x,1.+A[i0][1])*A[i0][0]*A[i0][2]+x*(pow(1.-1.*x,A[i0][2])*pow(x,-1.+A[i0][1])*A[i0][0]*A[i0][1]*(1.+A[i0][1])-2.*pow(1.-1.*x,-1.+A[i0][2])*pow(x,A[i0][1])*A[i0][0]*(1.+A[i0][1])*A[i0][2]+pow(1.-1.*x,-2.+A[i0][2])*pow(x,1.+A[i0][1])*A[i0][0]*(-1.+A[i0][2])*A[i0][2]));
+       break;
+       case 3 :return x*(pow(1.-1.*x,A[i0][2])*pow(x,A[i0][1])*A[i0][0]*(1.+A[i0][1])-1.*pow(1.-1.*x,-1.+A[i0][2])*pow(x,1.+A[i0][1])*A[i0][0]*A[i0][2]+x*(pow(1.-1.*x,A[i0][2])*pow(x,-1.+A[i0][1])*A[i0][0]*A[i0][1]*(1.+A[i0][1])-2.*pow(1.-1.*x,-1.+A[i0][2])*pow(x,A[i0][1])*A[i0][0]*(1.+A[i0][1])*A[i0][2]+pow(1.-1.*x,-2.+A[i0][2])*pow(x,1.+A[i0][1])*A[i0][0]*(-1.+A[i0][2])*A[i0][2])+x*(2.*pow(1.-1.*x,A[i0][2])*pow(x,-1.+A[i0][1])*A[i0][0]*A[i0][1]*(1.+A[i0][1])-4.*pow(1.-1.*x,-1.+A[i0][2])*pow(x,A[i0][1])*A[i0][0]*(1.+A[i0][1])*A[i0][2]+2.*pow(1.-1.*x,-2.+A[i0][2])*pow(x,1.+A[i0][1])*A[i0][0]*(-1.+A[i0][2])*A[i0][2]+x*(pow(1.-1.*x,A[i0][2])*pow(x,-2.+A[i0][1])*A[i0][0]*(-1.+A[i0][1])*A[i0][1]*(1.+A[i0][1])-3.*pow(1.-1.*x,-1.+A[i0][2])*pow(x,-1.+A[i0][1])*A[i0][0]*A[i0][1]*(1.+A[i0][1])*A[i0][2]+3.*pow(1.-1.*x,-2.+A[i0][2])*pow(x,A[i0][1])*A[i0][0]*(1.+A[i0][1])*(-1.+A[i0][2])*A[i0][2]-1.*pow(1.-1.*x,-3.+A[i0][2])*pow(x,1.+A[i0][1])*A[i0][0]*(-2.+A[i0][2])*(-1.+A[i0][2])*A[i0][2])));
+       break;
+    }
+  }
+  else{
+    switch (k)
+    {
+    case 0: A[i0][0]*pow(x,A[i0][1])*pow(1.-x,A[i0][2])*(1.+A[i0][3]*sqrt(x)+A[i0][4]*x+A[i0][5]*pow(x,1.5)+A[i0][6]*pow(x,2)+A[i0][7]*pow(x, 2.5));
+      break;
+    case 1: return A[i0][0]*pow(x,A[i0][1]+1.)*pow(1.-x,A[i0][2])*((A[i0][1]+1.-x*A[i0][2]/(1.-x))*(1.+A[i0][3]*sqrt(x)+A[i0][4]*x+A[i0][5]*pow(x,1.5)+A[i0][6]*pow(x,2.)+A[i0][7]*pow(x,2.5))+0.5*A[i0][3]*sqrt(x)+A[i0][4]*x+1.5*A[i0][5]*pow(x,1.5)+2.*A[i0][6]*pow(x,2.)+2.5*A[i0][7]*pow(x,2.5));
+      break;
+    case 2: return x*(pow(1.-x,A[i0][2])*pow(x,1.+A[i0][1])*A[i0][0]*(A[i0][3]/(2.*sqrt(x))+A[i0][4]+(3.*sqrt(x)*A[i0][5])/2.+2.*x*A[i0][6]+(5.*pow(x,1.5)*A[i0][7])/2.)+pow(1.-x,A[i0][2])*pow(x,A[i0][1])*A[i0][0]*(1.+A[i0][1])*(1.+sqrt(
+x)*A[i0][3]+x*A[i0][4]+pow(x,1.5)*A[i0][5]+pow(x,2)*A[i0][6]+pow(x,2.5)*A[i0][7])-pow(1.-x,-1.+A[i0][2])*pow(x,1.+A[i0][1])*A[i0][0]*A[i0][2]*(1.+sqrt(x)*A[i0][3]+x*A[i0][4]+pow(x,1.5)*A[i0][5]+pow(x,2)*A[i0][6]+pow(x,2.5)*A[i0][7])+x*(pow(1.-x,A[i0][2])*pow(x,1.+A[i0][1])*A[i0][0]*(
+-0.25*A[i0][3]/pow(x,1.5)+(3.*A[i0][5])/(4.*sqrt(x))+2*A[i0][6]+(15.*sqrt(x)*A[i0][7])/4.)+2*pow(1.-x,A[i0][2])*pow(x,A[i0][1])*A[i0][0]*(1.+A[i0][1])*(A[i0][3]/(2.*sqrt(x))+A[i0][4]+(3.*sqrt(x)*A[i0][5])/2.+2*x*A[i0][6]+(5*pow(x,1.5)*A[i0][7])/2.)-2.*pow(1.-x,-1.+A[i0][2])*pow(x,1.+A[i0][1])*A[i0][0]*A[i0][2]*(A[i0][3]/(2.*sqrt(x))+A[i0][4]+(3.*sqrt(x)*
+A[i0][5])/2.+2*x*A[i0][6]+(5.*pow(x,1.5)*A[i0][7])/2.)+pow(1.-x,A[i0][2])*pow(x,-1.+A[i0][1])*A[i0][0]*A[i0][1]*(1.+A[i0][1])*(1.+sqrt(x)*A[i0][3]+x*A[i0][4]+pow(x,1.5)*A[i0][5]+pow(x,2)*A[i0][6]+pow(x,2.5)*A[i0][7])-2.*pow(1-x,-1+A[i0][2])*pow(x,A[i0][1])*A[i0][0]*(1.+A[i0][1])*A[i0]
+[2]*(1.+sqrt(x)*A[i0][3]+x*A[i0][4]+pow(x,1.5)*A[i0][5]+pow(x,2)*A[i0][6]+pow(x,2.5)*A[i0][7])+pow(1.-x,-2+A[i0][2])*pow(x,1.+A[i0][1])*A[i0][0]*(-1.+A[i0][2])*A[i0][2]*(1.+sqrt(x)*A[i0][3]+x*A[i0][4]+pow(x,1.5)*A[i0][5]+pow(x,2)*A[i0][6]+pow(x,2.5)*A[i0][7])));
+      break;
+    case 3: return x*(pow(1.-1.*x,A[i0][2])*pow(x,1.+A[i0][1])*A[i0][0]*((0.5*A[i0][3])/sqrt(x)+A[i0][4]+1.5*sqrt(x)*A[i0][5]+2.*x*A[i0][6]+2.5*pow(x,1.5)*A[i0][7])+pow(1.-1.*x,A[i0][2])*pow(x,A[i0][1])*A[i0][0]*(1.+A[i0][1])*(1.+sqrt(x)*A[i0][3]+x*A[i0][4]+pow(x,1.5)*A[i0][5]+pow(x,2)*A[i0][6]+pow(x,2.5)*A[i0][7])-1.*pow(1.-1.*x,-1.+A[i0][2])*pow(x,1.+A[i0][1])*A[i0][0]*A[i0][2]*(1.+sqrt(x)*A[i0][3]+x*A[i0][4]+pow(x,1.5)*A[i0][5]+pow(x,2)*A[i0][6]+pow(x,2.5)*A[i0][7])+x*(pow(1.-1.*x,A[i0][2])*pow(x,1.+A[i0][1])*A[i0][0]*((-0.25*A[i0][3])/pow(x,1.5)+(0.75*A[i0][5])/sqrt(x)+2.*A[i0][6]+3.75*sqrt(x)*A[i0][7])+2.*pow(1.-1.*x,A[i0][2])*pow(x,A[i0][1])*A[i0][0]*(1.+A[i0][1])*((0.5*A[i0][3])/sqrt(x)+A[i0][4]+1.5*sqrt(x)*A[i0][5]+2.*x*A[i0][6]+2.5*pow(x,1.5)*A[i0][7])-2.*pow(1.-1.*x,-1.+A[i0][2])*pow(x,1.+A[i0][1])*A[i0][0]*A[i0][2]*((0.5*A[i0][3])/sqrt(x)+A[i0][4]+1.5*sqrt(x)*A[i0][5]+2.*x*A[i0][6]+2.5*pow(x,1.5)*A[i0][7])+pow(1.-1.*x,A[i0][2])*pow(x,-1.+A[i0][1])*A[i0][0]*A[i0][1]*(1.+A[i0][1])*(1.+sqrt(x)*A[i0][3]+x*A[i0][4]+pow(x,1.5)*A[i0][5]+pow(x,2)*A[i0][6]+pow(x,2.5)*A[i0][7])-2.*pow(1.-1.*x,-1.+A[i0][2])*pow(x,A[i0][1])*A[i0][0]*(1.+A[i0][1])*A[i0][2]*(1.+sqrt(x)*A[i0][3]+x*A[i0][4]+pow(x,1.5)*A[i0][5]+pow(x,2)*A[i0][6]+pow(x,2.5)*A[i0][7])+pow(1.-1.*x,-2.+A[i0][2])*pow(x,1.+A[i0][1])*A[i0][0]*(-1.+A[i0][2])*A[i0][2]*(1.+sqrt(x)*A[i0][3]+x*A[i0][4]+pow(x,1.5)*A[i0][5]+pow(x,2)*A[i0][6]+pow(x,2.5)*A[i0][7]))+x*(2.*pow(1.-1.*x,A[i0][2])*pow(x,1.+A[i0][1])*A[i0][0]*((-0.25*A[i0][3])/pow(x,1.5)+(0.75*A[i0][5])/sqrt(x)+2.*A[i0][6]+3.75*sqrt(x)*A[i0][7])+4.*pow(1.-1.*x,A[i0][2])*pow(x,A[i0][1])*A[i0][0]*(1.+A[i0][1])*((0.5*A[i0][3])/sqrt(x)+A[i0][4]+1.5*sqrt(x)*A[i0][5]+2.*x*A[i0][6]+2.5*pow(x,1.5)*A[i0][7])-4.*pow(1.-1.*x,-1.+A[i0][2])*pow(x,1.+A[i0][1])*A[i0][0]*A[i0][2]*((0.5*A[i0][3])/sqrt(x)+A[i0][4]+1.5*sqrt(x)*A[i0][5]+2.*x*A[i0][6]+2.5*pow(x,1.5)*A[i0][7])+2.*pow(1.-1.*x,A[i0][2])*pow(x,-1.+A[i0][1])*A[i0][0]*A[i0][1]*(1.+A[i0][1])*(1.+sqrt(x)*A[i0][3]+x*A[i0][4]+pow(x,1.5)*A[i0][5]+pow(x,2)*A[i0][6]+pow(x,2.5)*A[i0][7])-4.*pow(1.-1.*x,-1.+A[i0][2])*pow(x,A[i0][1])*A[i0][0]*(1.+A[i0][1])*A[i0][2]*(1.+sqrt(x)*A[i0][3]+x*A[i0][4]+pow(x,1.5)*A[i0][5]+pow(x,2)*A[i0][6]+pow(x,2.5)*A[i0][7])+2.*pow(1.-1.*x,-2.+A[i0][2])*pow(x,1.+A[i0][1])*A[i0][0]*(-1.+A[i0][2])*A[i0][2]*(1.+sqrt(x)*A[i0][3]+x*A[i0][4]+pow(x,1.5)*A[i0][5]+pow(x,2)*A[i0][6]+pow(x,2.5)*A[i0][7])+x*(pow(1.-1.*x,A[i0][2])*pow(x,1.+A[i0][1])*A[i0][0]*((0.375*A[i0][3])/pow(x,2.5)-(0.375*A[i0][5])/pow(x,1.5)+(1.875*A[i0][7])/sqrt(x))+3.*pow(1.-1.*x,A[i0][2])*pow(x,A[i0][1])*A[i0][0]*(1.+A[i0][1])*((-0.25*A[i0][3])/pow(x,1.5)+(0.75*A[i0][5])/sqrt(x)+2.*A[i0][6]+3.75*sqrt(x)*A[i0][7])-3.*pow(1.-1.*x,-1.+A[i0][2])*pow(x,1.+A[i0][1])*A[i0][0]*A[i0][2]*((-0.25*A[i0][3])/pow(x,1.5)+(0.75*A[i0][5])/sqrt(x)+2.*A[i0][6]+3.75*sqrt(x)*A[i0][7])+3.*pow(1.-1.*x,A[i0][2])*pow(x,-1.+A[i0][1])*A[i0][0]*A[i0][1]*(1.+A[i0][1])*((0.5*A[i0][3])/sqrt(x)+A[i0][4]+1.5*sqrt(x)*A[i0][5]+2.*x*A[i0][6]+2.5*pow(x,1.5)*A[i0][7])-6.*pow(1.-1.*x,-1.+A[i0][2])*pow(x,A[i0][1])*A[i0][0]*(1.+A[i0][1])*A[i0][2]*((0.5*A[i0][3])/sqrt(x)+A[i0][4]+1.5*sqrt(x)*A[i0][5]+2.*x*A[i0][6]+2.5*pow(x,1.5)*A[i0][7])+3.*pow(1.-1.*x,-2.+A[i0][2])*pow(x,1.+A[i0][1])*A[i0][0]*(-1.+A[i0][2])*A[i0][2]*((0.5*A[i0][3])/sqrt(x)+A[i0][4]+1.5*sqrt(x)*A[i0][5]+2.*x*A[i0][6]+2.5*pow(x,1.5)*A[i0][7])+pow(1.-1.*x,A[i0][2])*pow(x,-2.+A[i0][1])*A[i0][0]*(-1.+A[i0][1])*A[i0][1]*(1.+A[i0][1])*(1.+sqrt(x)*A[i0][3]+x*A[i0][4]+pow(x,1.5)*A[i0][5]+pow(x,2)*A[i0][6]+pow(x,2.5)*A[i0][7])-3.*pow(1.-1.*x,-1.+A[i0][2])*pow(x,-1.+A[i0][1])*A[i0][0]*A[i0][1]*(1.+A[i0][1])*A[i0][2]*(1.+sqrt(x)*A[i0][3]+x*A[i0][4]+pow(x,1.5)*A[i0][5]+pow(x,2)*A[i0][6]+pow(x,2.5)*A[i0][7])+3.*pow(1.-1.*x,-2.+A[i0][2])*pow(x,A[i0][1])*A[i0][0]*(1.+A[i0][1])*(-1.+A[i0][2])*A[i0][2]*(1.+sqrt(x)*A[i0][3]+x*A[i0][4]+pow(x,1.5)*A[i0][5]+pow(x,2)*A[i0][6]+pow(x,2.5)*A[i0][7])-1.*pow(1.-1.*x,-3.+A[i0][2])*pow(x,1.+A[i0][1])*A[i0][0]*(-pow(x,1.5)*A[i0][5]+pow(x,2)*A[i0][6]+pow(x,2.5)*A[i0][7]))));
+      break;
+    default:
+      break;
+    }
+  }
 }
 
-void set_pdf(int i, const double &x, double q[5], double qbar[5], double &g, const bool usePDFAnzat)
+void set_pdf(int i, const double &x, std::vector<double>& q, std::vector<double>& qbar, double &g, const bool usePDFAnzat, int k, bool num)
 {
-  const int idx_q[5] = {1, 2, 4, 7, 5};  // d , u , s , c , b
-  const int idx_qb[5] = {3, 6, 4, 7, 5}; // dbar , ubar , sbar , cbar , bbar
-  //auto func = (i == 0) ? F_real : F_real_bis;
-  double (*func)(const double&, int, const bool);
-  if (i==5)
+  std::vector<int>  idx_q = usePDFAnzat ? std::vector<int>{8} : std::vector<int>{1, 2, 4, 7, 5};// d , u , s , c , b
+  std::vector<int>  idx_qb = usePDFAnzat ? std::vector<int>{8} : std::vector<int>{3, 6, 4, 7, 5};// dbar , ubar , sbar , cbar , bbar
+  double (*func)(const double&, int, const bool, int);
+  if (num)
     func = F_real;
   else
     func = F_real_bis;
-
-  for (int j=0; j<5; j++)
+  //std::cout << idx_q[0] << std::endl;
+  //PDFs  
+  //g = func(x, 0, usePDFAnzat, k);
+  for (int j=0; j<Nflav; j++)
   {
-    qbar[j] = func(x, idx_qb[j], usePDFAnzat);  // qbar for b, c, s, u
-    q[j] = func(x, idx_q[j], usePDFAnzat);    // q for b, c, s
-    g = func(x, 0, usePDFAnzat);              // g
+    qbar.push_back( func(x, idx_qb[j], usePDFAnzat, k));  // qbar for b, c, s, u
+    q.push_back( func(x, idx_q[j], usePDFAnzat, k));    // q for b, c, s 
   }
 }
-void set_pdfN(const std::complex<double> &N, std::complex<double> q[5], std::complex<double> qbar[5], std::complex<double> &g, const bool usePDFAnzat)
+void set_pdfN(const std::complex<double>& N, std::vector<std::complex<double>>& q, std::vector<std::complex<double>>& qbar, std::complex<double>& g, const bool usePDFAnzat)
 {
-  const int idx_q[5] = {1, 2, 4, 7, 5};
-  const int idx_qb[5] = {3, 6, 4, 7, 5};
+  std::vector<int>  idx_q = usePDFAnzat ? std::vector<int>{8} : std::vector<int>{1, 2, 4, 7, 5};// d , u , s , c , b
+  std::vector<int>  idx_qb = usePDFAnzat ? std::vector<int>{8} : std::vector<int>{3, 6, 4, 7, 5};// dbar , ubar , sbar , cbar , bbar
   std::complex<double> (*func)(const std::complex<double> &,const int &, const bool);
   
   if (std::abs(N)<140.)
@@ -55,38 +101,39 @@ void set_pdfN(const std::complex<double> &N, std::complex<double> q[5], std::com
     func = F3;
   //PDFs
   g=func(N,0,usePDFAnzat);
+  
   for (int j=0; j<Nflav; j++)
   {
-    qbar[j] = func(N, idx_qb[j], usePDFAnzat);  // qbar for b, c, s, u
-    q[j] = func(N, idx_q[j], usePDFAnzat);    // q for b, c, s
+    qbar.push_back(func(N, idx_qb[j], usePDFAnzat));  // qbar for b, c, s, u
+    q.push_back(func(N, idx_q[j], usePDFAnzat));    // q for b, c, s
   }
 }
 
 
 
-double Luminosity(const int &i, const double &xa, const double &xb, const double &a, const bool usePDFAnzat)
+double Luminosity(const int &i, const double &xa, const double &xb, const double &a, const bool usePDFAnzat, bool qq, int k)
 {
   // Variables for PDFs
   double fAB = 0.;
-  double qa_plus[Nflav], qb_plus[Nflav], qbara_plus[Nflav], qbarb_plus[Nflav];
-  double qa_minus[Nflav], qb_minus[Nflav], qbara_minus[Nflav], qbarb_minus[Nflav];
-  double g;
-  double ha = 2.*eps*xa;
-  double hb = 2.*eps*xb;
+  std::vector<double> qa_plus, qb_plus, qbara_plus, qbarb_plus;
+  std::vector<double> qa_minus, qb_minus, qbara_minus, qbarb_minus;
+  double ga, gb;
+  double ha = 2.*Eps*xa;
+  double hb = 2.*Eps*xb;
 
   // Adjust limits for xa_plus and xb_plus
-  double xa_plus = std::min(xa*(1.+eps), 1.0);
-  double xb_plus = std::min(xb*(1.+eps), 1.0);
-  double xa_minus = xa*(1.-eps);
-  double xb_minus = xb*(1.-eps);
+  double xa_plus = std::min(xa*(1.+Eps), 1.0);
+  double xb_plus = std::min(xb*(1.+Eps), 1.0);
+  double xa_minus = xa*(1.-Eps);
+  double xb_minus = xb*(1.-Eps);
 
   // Compute PDFs for variations
-  if(i==5)  // First PDF trick
+  if(i==7)  // First PDF trick
   {
-    set_pdf(i, xa_plus, qa_plus, qbara_plus, g, usePDFAnzat);   // PDFs with xa+eps
-    set_pdf(i, xa_minus, qa_minus, qbara_minus, g, usePDFAnzat); // PDFs with xa-eps
-    set_pdf(i, xb_plus, qb_plus, qbarb_plus, g, usePDFAnzat);   // PDFs with xb+eps
-    set_pdf(i, xb_minus, qb_minus, qbarb_minus, g, usePDFAnzat); // PDFs with xb-eps
+    set_pdf(i, xa_plus, qa_plus, qbara_plus, ga, usePDFAnzat, k, false);   // PDFs with xa+eps
+    set_pdf(i, xa_minus, qa_minus, qbara_minus, ga, usePDFAnzat, k, false); // PDFs with xa-eps
+    set_pdf(i, xb_plus, qb_plus, qbarb_plus, gb, usePDFAnzat, k, false);   // PDFs with xb+eps
+    set_pdf(i, xb_minus, qb_minus, qbarb_minus, gb, usePDFAnzat, k, false); // PDFs with xb-eps
 
     // Compute contributions to fAB
     //for (int fl = 0; fl < (usePDFAnzat ? 1 : Nflav); fl++)
@@ -104,16 +151,16 @@ double Luminosity(const int &i, const double &xa, const double &xb, const double
     
     
   }
-  else if (i==1 || i == 4) // Second PDF trick
+  else if (i==1 || i == 4 || i==5) // Second PDF trick
   {
-    double qa[Nflav], qb[Nflav], qbara[Nflav], qbarb[Nflav];
-    set_pdf(i, xa, qa, qbara, g, usePDFAnzat);
-    set_pdf(i, xb, qb, qbarb, g, usePDFAnzat);
+    std::vector<double> qa, qb, qbara, qbarb;
+    set_pdf(i, xa, qa, qbara, ga, usePDFAnzat, k, (i==5));
+    set_pdf(i, xb, qb, qbarb, gb, usePDFAnzat, k, (i==5));
     // Compute fAB contributions
-    for (int fl = 0; fl < Nflav; ++fl) fAB += (fl%2==0 ? gd : gu)*(qa[fl]*qbarb[fl] + qb[fl]*qbara[fl]) ;
+    for (int fl = 0; fl < Nflav; ++fl) fAB += (fl%2==0 ? gd : gu)*(qq ? qa[fl]*qbarb[fl] + qb[fl]*qbara[fl] : qa[fl]*gb+qb[fl]*ga+qbara[fl]*gb+qbarb[fl]*ga) ;
     
     // Remove charm quark
-    fAB-= gu*(qa[3]*qbarb[3] + qb[3]*qbara[3]);
+    fAB-= gu*(qq ? qa[3]*qbarb[3] + qb[3]*qbara[3] : qa[3]*gb+qb[3]*ga+qbara[3]*gb+qbarb[3]*ga);
 
     //PDF Anzat
     if(usePDFAnzat) fAB=qa[0]*qbarb[0];
@@ -121,11 +168,25 @@ double Luminosity(const int &i, const double &xa, const double &xb, const double
     if (std::abs(fAB) > 1e4)
      info("xa = " + std::to_string(xa)  + "; xb = " + std::to_string(xb) + "; fAB = " + std::to_string(fAB));
   }
-
   // Output
   return fAB;
 }
 
+std::complex<double> MLuminosity(const std::complex<double> &N, const bool usePDFAnzat)
+{   
+  std::vector<std::complex<double>> q, qbar;
+  std::complex<double>  g, fAB=0;
+  set_pdfN(N, q, qbar, g, usePDFAnzat);  // Set PDFs with N
+  if(usePDFAnzat) fAB=q[0]*qbar[0];
+
+  else
+  {
+    for (int fl=0; fl<Nflav; fl++) fAB+= (fl%2==0 ? gd : gu)*q[fl]*qbar[fl]*2.;
+    //remove charm quark contribution    std::cout << 1 << std::endl;
+    fAB-= gu*q[3]*qbar[3]*2.;
+  }
+  return fAB;
+}
 
 std::complex<double> Gamma(const std::complex<double> x) {
     const int intx = (int)real(x);

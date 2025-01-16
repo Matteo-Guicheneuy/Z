@@ -11,7 +11,7 @@
 // ************************************************************************* //
 //  Constructor                                                              //
 // ************************************************************************* //
-Process::Process(const std::string&s1, double s2, int s3, const bool usePDFAnzat): sh(s2*s2), xs_id(s3),usePDFAnzat(usePDFAnzat) 
+Process::Process(const std::string&s1, double s2, int s3, int ic,const bool usePDFAnzat): sh(s2*s2), xs_id(s3),ic(ic),usePDFAnzat(usePDFAnzat) 
 {
    // Printing information
    info("Initializing the collision setup");

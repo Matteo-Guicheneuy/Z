@@ -11,6 +11,7 @@
 // -------- Classes ----------------------------------- //
 #include "messages.h"     // Message services           //
 #include "LHAPDF/LHAPDF.h"// LHAPDF
+#include "constants.h"   
 
 
 
@@ -29,7 +30,9 @@ void PDFInit()
 
 
 // Function to initialise the PDF coefficients
-void InitialiseCoefficients(double A[8][8])
+void InitialiseCoefficients(double A[9][8])
+  //const int idx_q[6] = {1, 2, 4, 7, 5, 8};  
+  //const   int idx_qb[6] = {3, 6, 4, 7, 5, 8}; 
 {
   // Only for CT18NLO
   // if(Proc->NLO==2 || Proc->NLO==3) pdfFit(A1min,A,muF,-1.6,-1.6,-1.6,Proc); 
@@ -41,7 +44,7 @@ void InitialiseCoefficients(double A[8][8])
   //Fitting sea up quark PDF...#chisq/dof = 8.35594e-09
   //Fitting charm quark PDF...#chisq/dof = 1.61266e-08
 
-  const double coeffs[8][8] = {
+  const double coeffs[9][8] = {
     {3.36311, -1.35686, 12.01851, -9.06557, 59.82888, -209.61905, 358.78810, -214.30364},
     {0.17088, -1.32599, 4.86054, -2.74299, 27.12173, -51.56600, 58.71166, -29.80953},
     {0.15891, -1.33284, 4.04498, -1.28483, 25.16123, -21.03617, 37.34074, -32.12262},
@@ -49,7 +52,8 @@ void InitialiseCoefficients(double A[8][8])
     {0.19715, -1.31408, 12.42845, -7.36475, 44.88323, -146.11711, 243.91655, -145.10893},
     {0.10914, -1.34332, 16.06492, -9.85651, 68.81877, -260.94287, 489.90364, -321.74473},
     {0.19950, -1.31377, 10.66072, -5.55560, 37.16200, -128.66354, 217.17546, -124.50014},
-    {0.14115, -1.33602, -0.27091, -6.04545, 15.21004, -19.76661, 13.13392, -3.53289}
+    {0.14115, -1.33602, -0.27091, -6.04545, 15.21004, -19.76661, 13.13392, -3.53289},
+    {1.0, -1.32147, 16.0, 0.0, 0.0, 0.0, 0.0, 0.0}
   };
   memcpy(A, coeffs, sizeof(coeffs));
 }
@@ -104,4 +108,55 @@ std::complex<double> PolyGamma(int n, std::complex<double> z) {
     return result;
 }
 
+int coefBinomial(int n, int k){
+ 
+    if (k > n)
+        return 0;
+    if (k == 0 || k == n)
+        return 1;
+  
+    return coefBinomial(n-1, k-1) + coefBinomial(n-1, k);
+}
 
+double derivk(double (* f)(double x, int i0), double x, int i0, double Eps, int k, int n)
+{ // wiki finite difference
+  //n=-1 backwar 
+  //n=0 central 
+  //n=1 forward
+  double res=0.;
+  for(int j=0;j<=k;j++)
+  {
+    switch (n)
+    {
+    case -1: res+=pow(-1, k-j)*coefBinomial(k,j)*f(x-j*Eps,i0);
+      break;
+    case 0: res+=pow(-1, j)*coefBinomial(k,j)*f(x+(k/2.-j)*Eps,i0);
+      break;
+    case 1: res+=pow(-1, j)*coefBinomial(k,j)*f(x+j*Eps,i0);
+      break;
+    default:
+      break;
+    }
+  }
+  return res*pow(Eps,-k);
+}
+
+double derive_x_k(double (* f)(double x, int i0), double x, int i0, int k, int n)
+{ //k: order of derivative
+  //For derivativ:
+  //n=-1 backwar 
+  //n=0 central 
+  //n=1 forward
+  switch(k)
+  {
+    case 1: return f(x, i0)+x*derivk(f, x, i0, Eps, 1, n);
+      break;
+    case 2: return f(x, i0)+3.*x*derivk(f, x, i0, Eps, 1, n)+pow(x,2)*derivk(f, x, i0, Eps, 2, n);
+      break;
+    case 3: return f(x, i0)+7.*x*derivk(f, x, i0, Eps, 1, n)+6.*pow(x,2)*derivk(f, x, i0, Eps, 2, n)+pow(x,3)*derivk(f, x, i0, Eps, 3, n);
+      break;
+    default: return 0.;
+      break;
+  }
+
+}
