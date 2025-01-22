@@ -118,7 +118,7 @@ int coefBinomial(int n, int k){
     return coefBinomial(n-1, k-1) + coefBinomial(n-1, k);
 }
 
-double derivk(double (* f)(double x, int i0), double x, int i0, double Eps, int k, int n)
+double derivkbis(double (* f)(double x, int i0), double x, int i0, double Eps, int k, int n)
 { // wiki finite difference
   //n=-1 backwar 
   //n=0 central 
@@ -141,19 +141,31 @@ double derivk(double (* f)(double x, int i0), double x, int i0, double Eps, int 
   return res*pow(Eps,-k);
 }
 
-double derive_x_k(double (* f)(double x, int i0), double x, int i0, int k, int n)
+double derivk(double (* f)(double x, int i0), double x, int i0, double eps, int k)
+{
+    switch(k){
+      case 1: return (3.*f(x-4.*eps,i0)-32.*f(x-3.*eps,i0)+168.*f(x-2.*eps,i0)-672.*f(x-eps,i0)+672.*f(x+eps,i0)-168.*f(x+2.*eps,i0)+32.*f(x+3.*eps,i0)-3.*f(x+4.*eps,i0))*pow(840.*eps,-1);
+        break;
+      case 2: return (-9.*f(x-4.*eps,i0)+128.*f(x-3.*eps,i0)-1008.*f(x-2.*eps,i0)+8064.*f(x-eps,i0)-14350*f(x,i0)+8064.*f(x+eps,i0)-1008.*f(x+2.*eps,i0)+128.*f(x+3.*eps,i0)-9.*f(x+4.*eps,i0))/5040.*pow(eps,-2);
+        break;
+      case 3: return (-7.*f(x-4.*eps,i0)+72.*f(x-3.*eps,i0)-338.*f(x-2.*eps,i0)+488.*f(x-eps,i0)-488.*f(x+eps,i0)+338.*f(x+2.*eps,i0)-72.*f(x+3.*eps,i0)+7.*f(x+4.*eps,i0))/240.*pow(eps,-3);
+        break;
+    }
+}
+double derive_x_k(double (* f)(double x, int i0), double x, int i0, int k)
 { //k: order of derivative
   //For derivativ:
   //n=-1 backwar 
   //n=0 central 
   //n=1 forward
+  double eps=x*Eps;
   switch(k)
   {
-    case 1: return f(x, i0)+x*derivk(f, x, i0, Eps, 1, n);
+    case 1: return f(x, i0)+x*derivk(f, x, i0, eps, 1);
       break;
-    case 2: return f(x, i0)+3.*x*derivk(f, x, i0, Eps, 1, n)+pow(x,2)*derivk(f, x, i0, Eps, 2, n);
+    case 2: return f(x, i0)+3.*x*derivk(f, x, i0, eps, 1)+pow(x,2)*derivk(f, x, i0, eps, 2);
       break;
-    case 3: return f(x, i0)+7.*x*derivk(f, x, i0, Eps, 1, n)+6.*pow(x,2)*derivk(f, x, i0, Eps, 2, n)+pow(x,3)*derivk(f, x, i0, Eps, 3, n);
+    case 3: return f(x, i0)+7.*x*derivk(f, x, i0, eps, 1)+6.*pow(x,2)*derivk(f, x, i0, eps, 2)+pow(x,3)*derivk(f, x, i0, eps, 3);
       break;
     default: return 0.;
       break;

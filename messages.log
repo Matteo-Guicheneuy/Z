@@ -5,72 +5,39 @@
  ** INFO:   CT14lo.
  ** INFO:   CT18NLO.
  ** INFO: Initializing the collision setup.
- ** INFO: Processing kID = 2, ic = 7.
- ** INFO: -init results: 0 +/- 0 pb  (@ 0.00%).
- ** INFO: Warm-up results: 1.40315e+07 +/- 1.1096e+07 pb  (@ 79.08%).
- ** INFO: Refine-1 results: 487111 +/- 26918.2 pb  (@ 5.53%).
- ** INFO: Refine-2 results: 484500 +/- 2227.98 pb  (@ 0.46%).
- ** INFO: Refine-3 results: 484701 +/- 198.933 pb  (@ 0.04%).
- ** INFO: final results: 484701 +/- 198.933 pb  (@ 0.04%).
- ** INFO: kID = 2, duration=32.323999s, sc = 87727.625870.
- ** INFO: Initializing the collision setup.
- ** INFO: Processing kID = 3, ic = 7.
- ** INFO: kID = 3, duration=0.010459s, sc = 87727.625870.
- ** INFO: Initializing the collision setup.
- ** INFO: Processing kID = 4, ic = 7.
- ** INFO: -init results: 0 +/- 0 pb  (@ 0.00%).
- ** INFO: Warm-up results: 325855 +/- 144592 pb  (@ 44.37%).
- ** INFO: Refine-1 results: 479466 +/- 6539.33 pb  (@ 1.36%).
- ** INFO: Refine-2 results: 485821 +/- 1419.5 pb  (@ 0.29%).
- ** INFO: Refine-3 results: 484965 +/- 328.056 pb  (@ 0.07%).
- ** INFO: final results: 484965 +/- 328.056 pb  (@ 0.07%).
- ** INFO: kID = 4, duration=13.283165s, sc = 87727.625870.
- ** INFO: Initializing the collision setup.
- ** INFO: Processing kID = 5, ic = 7.
- ** INFO: -init results: 0 +/- 0 pb  (@ 0.00%).
- ** INFO: Warm-up results: 337121 +/- 115695 pb  (@ 34.32%).
- ** INFO: Refine-1 results: 498607 +/- 7856.74 pb  (@ 1.58%).
- ** INFO: Refine-2 results: 486486 +/- 1462.53 pb  (@ 0.30%).
- ** INFO: Refine-3 results: 486429 +/- 358.529 pb  (@ 0.07%).
- ** INFO: final results: 486429 +/- 358.529 pb  (@ 0.07%).
- ** INFO: kID = 5, duration=11.707466s, sc = 87727.625870.
- ** INFO: Initializing the collision setup.
- ** INFO: Processing kID = 2, ic = 8.
- ** INFO: -init results: 0 +/- 0 pb  (@ 0.00%).
- ** INFO: Warm-up results: 3.49586e+07 +/- 2.62905e+08 pb  (@ 752.05%).
- ** INFO: Refine-1 results: 868179 +/- 596342 pb  (@ 68.69%).
- ** INFO: Refine-2 results: 990931 +/- 51667 pb  (@ 5.21%).
- ** INFO: Refine-3 results: 1.00002e+06 +/- 4566.59 pb  (@ 0.46%).
- ** INFO: Refine-4 results: 998902 +/- 408.899 pb  (@ 0.04%).
- ** INFO: final results: 998902 +/- 408.899 pb  (@ 0.04%).
- ** INFO: kID = 2, duration=162.782350s, sc = 197435.048583.
- ** INFO: Initializing the collision setup.
- ** INFO: Processing kID = 3, ic = 8.
- ** INFO: kID = 3, duration=0.010173s, sc = 197435.048583.
- ** INFO: Initializing the collision setup.
- ** INFO: Processing kID = 4, ic = 8.
- ** INFO: -init results: 0 +/- 0 pb  (@ 0.00%).
- ** INFO: Warm-up results: 1.57538e+06 +/- 622154 pb  (@ 39.49%).
- ** INFO: Refine-1 results: 1.02308e+06 +/- 25778 pb  (@ 2.52%).
- ** INFO: Refine-2 results: 999116 +/- 5593.51 pb  (@ 0.56%).
- ** INFO: Refine-3 results: 999909 +/- 1309.03 pb  (@ 0.13%).
- ** INFO: Refine-4 results: 997818 +/- 560.377 pb  (@ 0.06%).
- ** INFO: final results: 997818 +/- 560.377 pb  (@ 0.06%).
- ** INFO: kID = 4, duration=69.402456s, sc = 197435.048583.
- ** INFO: Initializing the collision setup.
- ** INFO: Processing kID = 5, ic = 8.
- ** INFO: -init results: 0 +/- 0 pb  (@ 0.00%).
- ** INFO: Warm-up results: 989567 +/- 450733 pb  (@ 45.55%).
- ** INFO: Refine-1 results: 1.02683e+06 +/- 24931.5 pb  (@ 2.43%).
- ** INFO: Refine-2 results: 1.00448e+06 +/- 5637.61 pb  (@ 0.56%).
- ** INFO: Refine-3 results: 1.00586e+06 +/- 1328.5 pb  (@ 0.13%).
- ** INFO: Refine-4 results: 1.00548e+06 +/- 558.872 pb  (@ 0.06%).
- ** INFO: final results: 1.00548e+06 +/- 558.872 pb  (@ 0.06%).
- ** INFO: kID = 5, duration=66.857042s, sc = 197435.048583.
- ** INFO: Initializing the collision setup.
  ** INFO: Processing kID = 2, ic = 9.
  ** INFO: -init results: 0 +/- 0 pb  (@ 0.00%).
- ** INFO: Warm-up results: 5.42287e+09 +/- 6.10833e+09 pb  (@ 112.64%).
- ** INFO: Refine-1 results: 1.51216e+07 +/- 1.41793e+07 pb  (@ 93.77%).
- ** INFO: Refine-2 results: 1.56438e+06 +/- 1.19041e+06 pb  (@ 76.09%).
- ** INFO: Refine-3 results: 2.00939e+06 +/- 106876 pb  (@ 5.32%).
+ ** INFO: Warm-up results: 4.86454e+09 +/- 6.36393e+09 pb  (@ 130.82%).
+ ** INFO: Refine-1 results: 2.65339e+07 +/- 1.42525e+07 pb  (@ 53.71%).
+ ** INFO: Refine-2 results: 2.02411e+06 +/- 1.19242e+06 pb  (@ 58.91%).
+ ** INFO: Refine-3 results: 1.9289e+06 +/- 106671 pb  (@ 5.53%).
+ ** INFO: Refine-4 results: 2.00963e+06 +/- 9608.57 pb  (@ 0.48%).
+ ** INFO: Refine-5 results: 2.00399e+06 +/- 873.601 pb  (@ 0.04%).
+ ** INFO: final results: 2.00399e+06 +/- 873.601 pb  (@ 0.04%).
+ ** INFO: kID = 2, duration=831.432719s, sc = 444336.638804.
+ ** INFO: Initializing the collision setup.
+ ** INFO: Processing kID = 3, ic = 9.
+ ** INFO: kID = 3, duration=0.012452s, sc = 444336.638804.
+ ** INFO: Initializing the collision setup.
+ ** INFO: Processing kID = 4, ic = 9.
+ ** INFO: -init results: 0 +/- 0 pb  (@ 0.00%).
+ ** INFO: Warm-up results: 875057 +/- 2.42312e+06 pb  (@ 276.91%).
+ ** INFO: Refine-1 results: 2.20569e+06 +/- 104521 pb  (@ 4.74%).
+ ** INFO: Refine-2 results: 2.01961e+06 +/- 27024.7 pb  (@ 1.34%).
+ ** INFO: Refine-3 results: 2.00896e+06 +/- 5414.53 pb  (@ 0.27%).
+ ** INFO: Refine-4 results: 2.00212e+06 +/- 2249 pb  (@ 0.11%).
+ ** INFO: Refine-5 results: 2.00398e+06 +/- 537.502 pb  (@ 0.03%).
+ ** INFO: final results: 2.00398e+06 +/- 537.502 pb  (@ 0.03%).
+ ** INFO: kID = 4, duration=335.301972s, sc = 444336.638804.
+ ** INFO: Initializing the collision setup.
+ ** INFO: Processing kID = 5, ic = 9.
+ ** INFO: -init results: 0 +/- 0 pb  (@ 0.00%).
+ ** INFO: Warm-up results: -610959 +/- 2.70102e+06 pb  (@ 442.09%).
+ ** INFO: Refine-1 results: 1.96617e+06 +/- 159068 pb  (@ 8.09%).
+ ** INFO: Refine-2 results: 2.00314e+06 +/- 43187.3 pb  (@ 2.16%).
+ ** INFO: Refine-3 results: 2.0036e+06 +/- 16414.7 pb  (@ 0.82%).
+ ** INFO: Refine-4 results: 2.01261e+06 +/- 7111.22 pb  (@ 0.35%).
+ ** INFO: Refine-5 results: 2.00881e+06 +/- 3023.69 pb  (@ 0.15%).
+ ** INFO: Refine-6 results: 2.00394e+06 +/- 1471.88 pb  (@ 0.07%).
+ ** INFO: final results: 2.00394e+06 +/- 1471.88 pb  (@ 0.07%).
+ ** INFO: kID = 5, duration=15551.333621s, sc = 444336.638804.

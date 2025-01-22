@@ -27,11 +27,10 @@ double fAnzat(double x, int i0)
 
 double F_real(const double &x, int i0, const bool usePDFAnzat, int k)
 {
-  int c=0;
-  if (x>1-4.*Eps) return 0;
-  else if(x<4.*Eps) return 0;
+  if (x>1-5.*Eps*x) return 0;
+  else if(x<5.*Eps*x) return 0;
 
-  return usePDFAnzat ? x*derive_x_k(fAnzat,x,i0,k,c) : x*derive_x_k(f,x,i0,k,c);
+  return usePDFAnzat ? x*derive_x_k(fAnzat,x,i0,k) : x*derive_x_k(f,x,i0,k);
 }
 
 double F_real_bis(const double &x, int i0, const bool usePDFAnzat, int k)

@@ -58,7 +58,7 @@ int main(int argc, char* argv[])
   //const bool usePDFAnzat=true;
 
   // Main computation loop
-  for (int ic=7; ic<=10; ++ic)
+  for (int ic=9; ic<=9; ++ic)
   {
     double sc = s0 * pow(sf / s0, 1.0 * ic / nsteps);
     double res1 = 0, err1 = 0, res2 = 0, err2 = 0, res3 = 0, err3 = 0;
@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
       info("kID = " + std::to_string(kID) + ", duration=" + std::to_string(duration.count() / 1e6) + "s, sc = " +  std::to_string(sc));
       delete proc;
     }
-
+          //res1 = 2.00531e+06,err1 = 876.833;
           std::cout << "////" << "incertitude = " << std::abs(res1-res2)/std::sqrt(err1*err1+err2*err2)  << "  "<< std::abs(res1-res3)/std::sqrt(err1*err1+err3*err3) << " res1 = " << res1 << " res2 = " << res2 << " res3 = " << res3 <<" err1 = " << err1 << " err2 = " << err2 << " err3 = " << err3 << "////" <<   std::endl;
     
   }
