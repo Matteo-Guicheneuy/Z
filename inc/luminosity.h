@@ -5,7 +5,8 @@
 // ************************************************************************* //
 // -------- Standard headers -------------------------- //
 #include <complex>                                      //
-#include <vector>                                       //
+#include <vector>   
+#include "process.h"                                    //
 
 // -------- Functions --------------------------------- //
 double F_real(const double &, int,const bool, int);
@@ -19,4 +20,10 @@ std::complex<double> B2(const std::complex<double>, double);
 std::complex<double> Fbis(const std::complex<double> &, const int &,const bool);
 std::complex<double> B(const std::complex<double> &, double, double);
 std::complex<double> F3(const std::complex<double> &, const int &,const bool);
+void Kinematics(double &xa, double &xb, double &jac, double &s, double *x, Process *p);
+void Kinematics2(double &xa, double &xb, double &jac, double &s, double *x, Process *p);
+void Kinematics2Plus(double &y, double &z, double &jac, double &s, double *x, Process *p);
+void SetCouplings(const int &Subproc, Process *p, double &fAB, double &xa, double &xb);
+
+
 #endif

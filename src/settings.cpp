@@ -85,7 +85,6 @@ std::complex<double> HarmonicNumber(std::complex<double> N)
   res=(Psi(N+1.-Psi(1.)))/N;
   return res;
 }
-//const double Gamma = 0.57721566490153286060;
 
 // Complex Digamma function using series expansion
 std::complex<double> complex_digamma(std::complex<double> z) {
@@ -118,7 +117,7 @@ int coefBinomial(int n, int k){
     return coefBinomial(n-1, k-1) + coefBinomial(n-1, k);
 }
 
-double derivkbis(double (* f)(double x, int i0), double x, int i0, double Eps, int k, int n)
+double derivkbis(double (* f)(double x, int i0), double x, int i0, double Eps, int k, int n)//(Not used)
 { // wiki finite difference
   //n=-1 backwar 
   //n=0 central 

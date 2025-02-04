@@ -14,7 +14,7 @@ double Tot(double*,size_t,void*);
 // ************************************************************************* //
 //  Helper Function for VEGAS                                                //
 // ************************************************************************* //
-void PerformIntegration(double& res, double& err, double& chi, Process* proc, size_t dim)
+void PerformIntegration(double& res, double& err, double& chi, Process* proc, size_t dim, double precision_target)
 {
   // Initialize random number generator
   gsl_rng* r = gsl_rng_alloc(gsl_rng_default);
@@ -42,7 +42,7 @@ void PerformIntegration(double& res, double& err, double& chi, Process* proc, si
   double precision = 1e9;
   int counter = 1;
   size_t calls = 10000;
-  while(precision>1.e-3 && counter<=10)
+  while(precision>precision_target && counter<=10)
   {
     std::string label = "Refine-" + std::to_string(counter);
     std::cout << "new round" << std::endl;
