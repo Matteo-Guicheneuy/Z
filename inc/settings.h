@@ -17,17 +17,15 @@
 #include <complex>
 
 void PDFInit();
-void InitialiseCoefficients(double A[8][8]);
+void InitialiseCoefficients(double A[9][8]);
 void OpenFiles(std::vector<std::ofstream>&, const std::vector<std::string>&);
 void CloseFiles(std::vector<std::ofstream>&);
 std::complex<double> Psi(std::complex<double> );
 std::complex<double> HarmonicNumber(std::complex<double> );
-std::complex<double> complex_digamma(std::complex<double> );
-std::complex<double> PolyGamma(int n, std::complex<double> );
 int coefBinomial(int n, int k);
-double derive_x_k(double (* f)(double x, int i0), double x, int i0, int k);
-
-
+double derive_x_k(double (* f)(double x, int i0, const LHAPDF::PDF* F), double x, int i0, const LHAPDF::PDF* F, int k);
+int indice(double x, double xmin, double xmax, int np);
+std::complex<double> pgamma(int m, std::complex<double> z);
 
 #endif
 

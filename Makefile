@@ -38,7 +38,7 @@ all: RUN
 lib: ${LIB}
 
 RUN: main.cpp ${LIB}
-	${CC} ${CFLAG} -o $@ main.cpp ${LIB} ${STLIB} ${GSLIB} ${LHAPDFLIB}
+	${CC} ${CFLAG} -o $@ main.cpp ${LIB} ${STLIB} ${GSLIB} ${LHAPDFLIB} 
 
 ${LIB}:	${COBJS} ${FOBJS}
 	ar -ruc $@ ${BLDDIR}/*.o

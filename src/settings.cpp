@@ -7,11 +7,17 @@
 #include <cmath>      	// Mathematical functions       //
 #include <math.h>
 #include <complex>
+#include <gsl/gsl_sf_psi.h>
+
 
 // -------- Classes ----------------------------------- //
 #include "messages.h"     // Message services           //
 #include "LHAPDF/LHAPDF.h"// LHAPDF
 #include "constants.h"   
+#include "main.h"
+#include "polygamma.h"
+//extern double AlphaS;
+
 
 
 
@@ -73,10 +79,11 @@ void CloseFiles(std::vector<std::ofstream>& files)
 
 std::complex<double> Psi(std::complex<double> N)
 {
-  std::complex<double> res(0.,0.);
-  while(real(N)<10.) { res=res-1./N; N=N+1.; }
-  res=res+log(N)-1./(2.*N)-pow(N,-2.)/2520.*(210.+pow(N,-2.)*(-21.+pow(N,-2.)*10.));
-  return res;
+  const std::complex<double> i(0., 1.);
+  gsl_sf_result resR,resI;
+  gsl_sf_complex_psi_e(std::real(N),std::imag(N),&resR,&resI);
+  //std::cout << resR.val<< "," << resI.val << std::endl;
+  return resR.val+i*resI.val;
 }
 
 std::complex<double> HarmonicNumber(std::complex<double> N)
@@ -87,25 +94,7 @@ std::complex<double> HarmonicNumber(std::complex<double> N)
 }
 
 // Complex Digamma function using series expansion
-std::complex<double> complex_digamma(std::complex<double> z) {
-    std::complex<double> result = -0.57721566490153286060;
-    std::complex<double> term;
-    // Series expansion for the complex digamma function
-    for (int n = 1; n <= 10; ++n) {
-        term = 1.0 / pow(z + std::complex<double>(n - 1), 1);
-        result += term;
-    }
-    return result;
-}
 
-std::complex<double> PolyGamma(int n, std::complex<double> z) {
-    std::complex<double> result = complex_digamma(z);
-    // Iterate to compute higher-order polygamma functions
-    for (int i = 0; i < n; ++i) {
-        result = -result / pow(z, 2);  // Approximate derivatives for polygamma
-    }
-    return result;
-}
 
 int coefBinomial(int n, int k){
  
@@ -140,18 +129,19 @@ double derivkbis(double (* f)(double x, int i0), double x, int i0, double Eps, i
   return res*pow(Eps,-k);
 }
 
-double derivk(double (* f)(double x, int i0), double x, int i0, double eps, int k)
+double derivk(double (* f)(double x, int i0, const LHAPDF::PDF* F), double x, int i0, const LHAPDF::PDF* F ,double eps, int k)
 {
     switch(k){
-      case 1: return (3.*f(x-4.*eps,i0)-32.*f(x-3.*eps,i0)+168.*f(x-2.*eps,i0)-672.*f(x-eps,i0)+672.*f(x+eps,i0)-168.*f(x+2.*eps,i0)+32.*f(x+3.*eps,i0)-3.*f(x+4.*eps,i0))*pow(840.*eps,-1);
+      case 1: return (3.*f(x-4.*eps,i0,F)-32.*f(x-3.*eps,i0,F)+168.*f(x-2.*eps,i0,F)-672.*f(x-eps,i0,F)+672.*f(x+eps,i0,F)-168.*f(x+2.*eps,i0,F)+32.*f(x+3.*eps,i0,F)-3.*f(x+4.*eps,i0,F))*pow(840.*eps,-1);
         break;
-      case 2: return (-9.*f(x-4.*eps,i0)+128.*f(x-3.*eps,i0)-1008.*f(x-2.*eps,i0)+8064.*f(x-eps,i0)-14350*f(x,i0)+8064.*f(x+eps,i0)-1008.*f(x+2.*eps,i0)+128.*f(x+3.*eps,i0)-9.*f(x+4.*eps,i0))/5040.*pow(eps,-2);
+      case 2: return (-9.*f(x-4.*eps,i0,F)+128.*f(x-3.*eps,i0,F)-1008.*f(x-2.*eps,i0,F)+8064.*f(x-eps,i0,F)-14350*f(x,i0,F)+8064.*f(x+eps,i0,F)-1008.*f(x+2.*eps,i0,F)+128.*f(x+3.*eps,i0,F)-9.*f(x+4.*eps,i0,F))/5040.*pow(eps,-2);
         break;
-      case 3: return (-7.*f(x-4.*eps,i0)+72.*f(x-3.*eps,i0)-338.*f(x-2.*eps,i0)+488.*f(x-eps,i0)-488.*f(x+eps,i0)+338.*f(x+2.*eps,i0)-72.*f(x+3.*eps,i0)+7.*f(x+4.*eps,i0))/240.*pow(eps,-3);
+      case 3: return (-7.*f(x-4.*eps,i0,F)+72.*f(x-3.*eps,i0,F)-338.*f(x-2.*eps,i0,F)+488.*f(x-eps,i0,F)-488.*f(x+eps,i0,F)+338.*f(x+2.*eps,i0,F)-72.*f(x+3.*eps,i0,F)+7.*f(x+4.*eps,i0,F))/240.*pow(eps,-3);
         break;
     }
 }
-double derive_x_k(double (* f)(double x, int i0), double x, int i0, int k)
+
+double derive_x_k(double (* f)(double x, int i0, const LHAPDF::PDF* F), double x, int i0, const LHAPDF::PDF* F, int k)
 { //k: order of derivative
   //For derivativ:
   //n=-1 backwar 
@@ -160,14 +150,41 @@ double derive_x_k(double (* f)(double x, int i0), double x, int i0, int k)
   double eps=x*Eps;
   switch(k)
   {
-    case 1: return f(x, i0)+x*derivk(f, x, i0, eps, 1);
+    case 1: return f(x, i0, F)+x*derivk(f, x, i0, F,eps, 1);
       break;
-    case 2: return f(x, i0)+3.*x*derivk(f, x, i0, eps, 1)+pow(x,2)*derivk(f, x, i0, eps, 2);
+    case 2: return f(x, i0, F)+3.*x*derivk(f, x, i0, F,eps, 1)+pow(x,2)*derivk(f, x, i0, F, eps, 2);
       break;
-    case 3: return f(x, i0)+7.*x*derivk(f, x, i0, eps, 1)+6.*pow(x,2)*derivk(f, x, i0, eps, 2)+pow(x,3)*derivk(f, x, i0, eps, 3);
+    case 3: return f(x, i0, F)+7.*x*derivk(f, x, i0, F, eps, 1)+6.*pow(x,2)*derivk(f, x, i0, F, eps, 2)+pow(x,3)*derivk(f, x, i0, F, eps, 3);
       break;
     default: return 0.;
       break;
   }
 
+}
+
+int indice(double x, double xmin, double xmax, int np)
+{
+  if(x>=xmin){
+    if(x<=xmax){
+      return (int) np*(x-xmin)/(xmax-xmin);
+    }
+  }
+  else return -1;
+
+}
+long long factorial(int n) {
+  if (n <= 1) {
+      return 1;
+  }
+  return n * factorial(n - 1);
+}
+
+std::complex<double> pgamma(int m, std::complex<double> z){
+  std::complex<double> res=0.;
+  while(std::real(z)<14){
+      res+= - pow(-1.,m)*factorial(m)*pow(z,-m-1);
+      z=z+1.;
+  }
+  res+= pGamma(m, z);
+  return res;
 }

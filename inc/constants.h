@@ -14,7 +14,7 @@
 const double MZ = 91.188; //Z boson mass in GeV
 const double GF = 1.16639e-5; //Fermi constant
 //double alpha_b = 7.29735257e-3;  //alpha
-const double AlphaS = 0.118; //alpha_s(MZ)
+//const double AlphaS = 0.118; //alpha_s(MZ)
 //double alpha_s = 0.05; //alpha_s(MZ)
 const double alphaM1 = 1.32507e+2; //1/alpha
 const double Alpha = 1/alphaM1;//7.5467711139788835e-3;  //alpha(MZ)
@@ -31,7 +31,7 @@ const double Tf=1./2.;
 const double muF=MZ;
 const double muR=MZ;
 
-constexpr int Nflav= usePDFAnzat ? 1 : 5;
+const int Nflav= usePDFAnzat ? 1 : 5;
 
 const double Pi= M_PI;
 const double EulerGamma = 0.577215664901;

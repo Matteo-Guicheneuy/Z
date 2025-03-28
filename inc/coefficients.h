@@ -1,1 +1,1 @@
-extern double A[8][8];
+extern double A[9][8];

@@ -16,28 +16,54 @@
 #include <iostream>
 
 
+double f_LHAPDF(double x, int i0, const LHAPDF::PDF* F)
+{ 
+  double res=0.;
+  if(x > 0 && x < 1) res=F->xfxQ2(i0,x,muF*muF)/x;
+  return res;
+}
+
+double Set_f_LHAPDF(double &x, int i0, const LHAPDF::PDF* F, int k)
+{ 
+  if(k==0) return f_LHAPDF(x, i0, F);
+  else return x*derive_x_k(f_LHAPDF,x,i0,F ,k);
+}
+
+void set_pdf_LHAPDF(const LHAPDF::PDF* F , double &x, std::vector<double>& q, std::vector<double>& qbar, double &g, const bool usePDFAnzat, int k, bool num)
+{
+  // Quarks PDG list
+  std::vector<int>  idx_q = usePDFAnzat ? std::vector<int>{8} : std::vector<int>{1, 2, 3, 4, 5};// d , u , s , c , b
+  std::vector<int>  idx_qb = usePDFAnzat ? std::vector<int>{8} : std::vector<int>{-1, -2, -3, -4, -5};// dbar , ubar , sbar , cbar , bbar
+  //PDFs  
+  g = Set_f_LHAPDF(x, 0, F, k);
+  for (int j=0; j<Nflav; j++)
+  {
+    qbar.push_back( Set_f_LHAPDF(x, idx_qb[j], F, k));  // qbar for b, c, s, u
+    q.push_back( Set_f_LHAPDF(x, idx_q[j], F, k));    // q for b, c, s 
+  }
+}
 //PDF analitic function
-double f(double x, int i0)
+double f(double x, int i0, const LHAPDF::PDF* F)
 {
   return A[i0][0]*pow(x,A[i0][1])*pow(1.-x,A[i0][2])*(1.+A[i0][3]*sqrt(x)+A[i0][4]*x+A[i0][5]*pow(x,1.5)+A[i0][6]*pow(x,2)+A[i0][7]*pow(x, 2.5));
 }
 //PDF Anzat analitic function
-double fAnzat(double x, int i0)
+double fAnzat(double x, int i0, const LHAPDF::PDF* F)
 {
   return A[i0][0]*pow(x,A[i0][1])*pow(1.-x,A[i0][2]);
 }
 
 // Derivative of the PDF function at order k numericaly
-double F_real(const double &x, int i0, const bool usePDFAnzat, int k)
+double F_real(const double &x, int i0, const LHAPDF::PDF* F, const bool usePDFAnzat, int k)
 {
   if (x>1-5.*Eps*x) return 0;
   else if(x<5.*Eps*x) return 0;
-
-  return usePDFAnzat ? x*derive_x_k(fAnzat,x,i0,k) : x*derive_x_k(f,x,i0,k);
+  if(k==0) return usePDFAnzat ? fAnzat(x, i0, F) : f(x, i0, F);
+  else return usePDFAnzat ? x*derive_x_k(fAnzat,x,i0,F,k) : x*derive_x_k(f,x,i0,F,k);
 }
 
 // Derivative of the PDF function at order k analiticaly
-double F_real_bis(const double &x, int i0, const bool usePDFAnzat, int k)
+double F_real_bis(const double &x, int i0, const LHAPDF::PDF* F, const bool usePDFAnzat, int k)
 {
   // Derivative of PDF in real space
   if(usePDFAnzat){
@@ -92,24 +118,26 @@ A[i0][1])*A[i0][1]*(1.+A[i0][1])*(1.+sqrt(x)*A[i0][3]+x*A[i0][4]+pow(x,1.5)*A[i0
   }
 }
 
-void set_pdf(const double &x, std::vector<double>& q, std::vector<double>& qbar, double &g, const bool usePDFAnzat, int k, bool num)
+void set_pdf_fit(const LHAPDF::PDF* F, double &x,std::vector<double>& q, std::vector<double>& qbar, double &g, const bool usePDFAnzat, int k, bool num)
 { 
   // Quarks PDG list
   std::vector<int>  idx_q = usePDFAnzat ? std::vector<int>{8} : std::vector<int>{1, 2, 4, 7, 5};// d , u , s , c , b
   std::vector<int>  idx_qb = usePDFAnzat ? std::vector<int>{8} : std::vector<int>{3, 6, 4, 7, 5};// dbar , ubar , sbar , cbar , bbar
-  double (*func)(const double&, int, const bool, int);
+  double (*func)(const double&, int, const LHAPDF::PDF* F,const bool, int);
   if (num)
     func = F_real;
   else
     func = F_real_bis;
   //PDFs  
-  g = func(x, 0, usePDFAnzat, k);
+  g = func(x, 0, F,usePDFAnzat, k);
   for (int j=0; j<Nflav; j++)
   {
-    qbar.push_back( func(x, idx_qb[j], usePDFAnzat, k));  // qbar for b, c, s, u
-    q.push_back( func(x, idx_q[j], usePDFAnzat, k));    // q for b, c, s 
+    qbar.push_back( func(x, idx_qb[j], F,usePDFAnzat, k));  // qbar for b, c, s, u
+    q.push_back( func(x, idx_q[j], F,usePDFAnzat, k));    // q for b, c, s 
   }
 }
+
+
 void Mset_pdf(const std::complex<double>& N, std::vector<std::complex<double>>& q, std::vector<std::complex<double>>& qbar, std::complex<double>& g, const bool usePDFAnzat)
 {
   // Quarks PDG list
@@ -133,8 +161,12 @@ void Mset_pdf(const std::complex<double>& N, std::vector<std::complex<double>>& 
 
 
 
-double Luminosity(const int &i, const double &xa, const double &xb, const double &a, const bool usePDFAnzat, bool qq, int k)
+double Luminosity(const int &i, double &xa, double &xb, const LHAPDF::PDF* F,const double &a, const bool usePDFAnzat, bool qq, int k)
 {
+
+  void (*set_pdf)( const LHAPDF::PDF* F, double &x, std::vector<double>& q, std::vector<double>& qbar, double &g, const bool usePDFAnzat, int k, bool num);
+  if(use_LHAPDF)  set_pdf = set_pdf_LHAPDF;
+  else set_pdf = set_pdf_fit;
   // Variables for PDFs
   double fAB = 0.;
   std::vector<double> qa_plus, qb_plus, qbara_plus, qbarb_plus;
@@ -152,10 +184,10 @@ double Luminosity(const int &i, const double &xa, const double &xb, const double
   // Compute PDFs for variations
   if(i==7)  // First PDF trick
   {
-    set_pdf(xa_plus, qa_plus, qbara_plus, ga, usePDFAnzat, k, false);   // PDFs with xa+eps
-    set_pdf(xa_minus, qa_minus, qbara_minus, ga, usePDFAnzat, k, false); // PDFs with xa-eps
-    set_pdf(xb_plus, qb_plus, qbarb_plus, gb, usePDFAnzat, k, false);   // PDFs with xb+eps
-    set_pdf(xb_minus, qb_minus, qbarb_minus, gb, usePDFAnzat, k, false); // PDFs with xb-eps
+    set_pdf(F, xa_plus, qa_plus, qbara_plus, ga, usePDFAnzat, k, false);   // PDFs with xa+eps
+    set_pdf(F, xa_minus, qa_minus, qbara_minus, ga, usePDFAnzat, k, false); // PDFs with xa-eps
+    set_pdf(F, xb_plus, qb_plus, qbarb_plus, gb, usePDFAnzat, k, false);   // PDFs with xb+eps
+    set_pdf(F, xb_minus, qb_minus, qbarb_minus, gb, usePDFAnzat, k, false); // PDFs with xb-eps
 
     // Compute contributions to fAB
     //for (int fl = 0; fl < (usePDFAnzat ? 1 : Nflav); fl++)
@@ -173,12 +205,12 @@ double Luminosity(const int &i, const double &xa, const double &xb, const double
     
     
   }
-  else if (i==2 || i == 3 || i==5) // Second PDF trick
+  else if (i==2 || i == 3 || i== 4 || i==5) // Second PDF trick
   {
     std::vector<double> qa, qb, qbara, qbarb;
     bool num=(i==2||i==3);
-    set_pdf(xa, qa, qbara, ga, usePDFAnzat, k, num);
-    set_pdf(xb, qb, qbarb, gb, usePDFAnzat, k, num);
+    set_pdf(F, xa, qa, qbara, ga, usePDFAnzat, k, num);
+    set_pdf(F, xb, qb, qbarb, gb, usePDFAnzat, k, num);
     // Compute fAB contributions
     for (int fl = 0; fl < Nflav; ++fl) fAB += (fl%2==0 ? gd : gu)*(qq ? qa[fl]*qbarb[fl] + qb[fl]*qbara[fl] : qa[fl]*gb+qb[fl]*ga+qbara[fl]*gb+qbarb[fl]*ga) ;
     
@@ -188,25 +220,84 @@ double Luminosity(const int &i, const double &xa, const double &xb, const double
     //PDF Anzat
     if(usePDFAnzat) fAB=qa[0]*qbarb[0];
 
-    if (std::abs(fAB) > 1e4)
+    if (std::abs(fAB) > 1e10)
      info("xa = " + std::to_string(xa)  + "; xb = " + std::to_string(xb) + "; fAB = " + std::to_string(fAB));
   }
   // Output
   return fAB;
 }
+std::complex<double> EvolOperator(const std::complex<double> &N, std::complex<double> &EigenV)
+{
+  std::complex<double> res(0.0,0.0), Nb=N*exp(-Psi(1.));
+  double beta0=23./6.;
+  
+  res=pow((1.+beta0/M_PI*AlphaS*log(MZ/Nb/muR))/(1.+beta0/M_PI*AlphaS*log(muF/muR)),EigenV/beta0);
+  return res;
+}
 
-std::complex<double> MLuminosity(const std::complex<double> &N, const bool usePDFAnzat)
-{   
+void EvolvePDF(const std::complex<double> &N, std::vector<std::complex<double>>& q, std::vector<std::complex<double>>& qbar, std::complex<double> &g)
+{
+  double beta0=23./6., nf=(double)Nflav, cmp=0;
+  std::complex<double> V[5], NS[5], Sigma(0.,0.), tmp(0.0,0.0), Gqq, Ggg, Gqg, Ggq, rp, rm;
+  std::complex<double> VE[5], NSE[5], SigmaE(0.,0.);
+
+  Gqq=4./3.*(3./2.+1./(N*(N+1.))-2.*(Psi(N+1.)-Psi(1.)));
+  Gqg=(2.+N+N*N)/(2.*N*(N+1.)*(N+2.));
+  Ggq=4./3.*(2.+N+N*N)/(N*(N*N-1.));
+  Ggg=beta0+2.*3.*(1./(N*(N-1.))+1./((N+1.)*(N+2.))+Psi(1.)-Psi(N+1.));
+		   
+  rp=0.5*(Ggg+Gqq+pow(pow(Gqq-Ggg,2.)+8.*nf*Gqg*Ggq,0.5));
+  rm=0.5*(Ggg+Gqq-pow(pow(Gqq-Ggg,2.)+8.*nf*Gqg*Ggq,0.5));
+  
+  
+  for(int i0=0; i0<Nflav; i0++){
+    cmp+=1.;
+    
+    V[i0]=q[i0]-qbar[i0];
+    Sigma+=q[i0]+qbar[i0];
+    NS[i0]=Sigma-cmp*(q[i0]+qbar[i0]);
+    
+    VE[i0]=V[i0]*EvolOperator(N,Gqq);
+    NSE[i0]=NS[i0]*EvolOperator(N,Gqq);
+  }
+
+  SigmaE=EvolOperator(N,rp)*((Gqq-rm)*Sigma+2.*nf*Gqg*g)/(rp-rm)-EvolOperator(N,rm)*((Gqq-rp)*Sigma+g*Gqg*2.*nf)/(rp-rm);
+
+  //Evolved gluon PDF
+  g=EvolOperator(N,rp)*((Ggg-rm)*g+Ggq*Sigma)/(rp-rm)-EvolOperator(N,rm)*((Ggg-rp)*g+Ggq*Sigma)/(rp-rm);
+
+  //Evolved quark PDF
+  for (int i0 = Nflav-1; i0 >= 0; i0--) {  
+     q[i0] = (1.0 / nf * SigmaE - 1.0 / cmp * NSE[i0] + tmp + VE[i0]) * 0.5;
+     qbar[i0] = (1.0 / nf * SigmaE - 1.0 / cmp * NSE[i0] + tmp - VE[i0]) * 0.5;
+     tmp += 1.0 / cmp / (cmp - 1.0) * NSE[i0];
+     cmp -= 1.0;
+   }
+  
+}
+
+std::complex<double> MLuminosity(const std::complex<double> &N, const bool usePDFAnzat,std::string A,bool collinear)
+{  
   std::vector<std::complex<double>> q, qbar;
-  std::complex<double>  g, fAB=0;
+  std::complex<double>  g, fAB=0.;
   Mset_pdf(N, q, qbar, g, usePDFAnzat);  // Set PDFs with N
+  if(collinear) EvolvePDF(N, q,qbar, g);
+  // qq case
+  if(A=="qq"){
   // Compute fAB contributions
   for (int fl=0; fl<Nflav; fl++) fAB+= (fl%2==0 ? gd : gu)*q[fl]*qbar[fl]*2.;
-  
-  //remove charm quark contribution 
-  if(remove_charm_quark) fAB-= gu*q[3]*qbar[3]*2.;
 
-  if(usePDFAnzat) fAB=q[0]*qbar[0];
+  if(usePDFAnzat) fAB=2.*q[0]*qbar[0];
+  //remove charm  quark contribution 
+  if(remove_charm_quark) fAB-= gu*q[3]*qbar[3]*2.;
+  }
+  //
+  if(A=="qg"){
+  for (int fl=0; fl<Nflav; fl++) fAB+= (fl%2==0 ? gd : gu)*2.*g*(q[fl]+qbar[fl]);
+  //remove charm  quark contribution 
+  if(remove_charm_quark) fAB-= gu*g*2.*(q[3]+qbar[3]);
+  }
+ 
 
   return fAB;
 }
@@ -254,6 +345,7 @@ std::complex<double> F3(const std::complex<double> &N, const int &i0, const bool
 {
   return A[i0][0]*Gamma(A[i0][2]+1.)*(B(N,A[i0][1],1.+A[i0][2])+(usePDFAnzat ? 0.0 : B(N,A[i0][1]+0.5,1.+A[i0][2])*A[i0][3]+B(N,A[i0][1]+1.,1.+A[i0][2])*A[i0][4]+B(N,A[i0][1]+1.5,1.+A[i0][2])*A[i0][5]+B(N,A[i0][1]+2.,1.+A[i0][2])*A[i0][6]+B(N,A[i0][1]+2.5,1.+A[i0][2])*A[i0][7]));
 }
+
 
 ///**********************************************************///
 ///                   NLO CALCULATION                        ///  
@@ -306,14 +398,14 @@ void Kinematics2Plus(double &y, double &z, double &jac, double &s, double *x, Pr
   y=log(tau)*(0.5-x[0]);
 
   // Computes z + integration from 0->1 becomes from tau to 1
-  z=x[1]+tau*exp(2*fabs(y))*(1-x[1]);
+  z=x[1]+tau*exp(2*abs(y))*(1-x[1]);
   //z=pow(tau,x[0]*x[1]);
 
   // Computes shat
   s = tau/z*p->sh;
 
   // Jacobian of dy dz/z -> dx0 dx1 !! Carrefull a 1/z term was ommited as it has to be absorbed in the fAB factor to be integrated
-  jac = -log(tau)*(1-tau*exp(2*fabs(y)));
+  jac = -log(tau)*(1-tau*exp(2*abs(y)));
 }
 
 void SetLHAPDF(const LHAPDF::PDF* F, double &x, double q[5], double qb[5], double &g)
@@ -328,16 +420,22 @@ void SetLHAPDF(const LHAPDF::PDF* F, double &x, double q[5], double qb[5], doubl
 }
 void SetCouplings(const int &Subproc, Process *p, double &fAB, double &xa, double &xb)
 //void SetCouplings(const int &Subproc, Process *p, const PDF *F double &fAB, double &xa, double &xb)
-{
+{ 
+  void (*set_pdf)( const LHAPDF::PDF* F, double &x, std::vector<double>& q, std::vector<double>& qbar, double &g, const bool usePDFAnzat, int k, bool num);
+  if(use_LHAPDF)  set_pdf = set_pdf_LHAPDF;
+  else set_pdf = set_pdf_fit;
   fAB=0.;
-	double qa[5], qb[5], ga, gb, qbara[5], qbarb[5];
+	double  ga, gb;
+  std::vector<double> qa, qb, qbara, qbarb;
 	double tau = pow(MZ,2.)/p->sh;
 
 	if(Subproc==0) // For Born and regular virtual corrections (not +-distribution)
 	{
-	  SetLHAPDF(p->F,xa,qa,qbara,ga); // PDFs with xa
-	  SetLHAPDF(p->F,xb,qb,qbarb,gb); // PDFs with xb
+	  set_pdf(p->F,xa,qa,qbara,ga, usePDFAnzat, 0, true); // PDFs with xa
+	  set_pdf(p->F,xb,qb,qbarb,gb, usePDFAnzat, 0, true); // PDFs with xb
     for (int fl = 0; fl < Nflav; ++fl) fAB += (fl%2==0 ? gd : gu)*(qa[fl]*qbarb[fl]+qb[fl]*qbara[fl]);
+    if(remove_charm_quark){fAB -= gu*(qa[3]*qbarb[3]+qb[3]*qbara[3]);}
+    if(usePDFAnzat) fAB=qa[0]*qbarb[0]+qb[0]*qbara[0];
 	}
 
 	else if(Subproc==1) // For +-distribution part of virtual corrections. !!Carefull xa and xb variables are replaced by z and y variables!!
@@ -348,44 +446,61 @@ void SetCouplings(const int &Subproc, Process *p, double &fAB, double &xa, doubl
 		double xbpdf=sqrt(tau/z)*exp(-y); // xb value in the PDFs
 		double xaplus=sqrt(tau)*exp(y); // xa for z=1
 		double xbplus=sqrt(tau)*exp(-y); // xb for z=1
-		double qaplus[5], qbplus[5], gaplus, gbplus, qbaraplus[5], qbarbplus[5];
+   
+		double  gaplus, gbplus;
+    std::vector<double>  qaplus, qbplus, qbaraplus, qbarbplus;
 
-		SetLHAPDF(p->F,xapdf,qa,qbara,ga); // xa(y,z) and xb(y,z)
-		SetLHAPDF(p->F,xbpdf,qb,qbarb,gb);
+		set_pdf(p->F,xapdf,qa,qbara,ga,usePDFAnzat, 0, true); // xa(y,z) and xb(y,z)
+		set_pdf(p->F,xbpdf,qb,qbarb,gb,usePDFAnzat, 0, true);
 
-		SetLHAPDF(p->F,xaplus,qaplus,qbaraplus,gaplus); // Evaluation of PDFs in z=1
-    SetLHAPDF(p->F,xbplus,qbplus,qbarbplus,gbplus);
+		set_pdf(p->F,xaplus,qaplus,qbaraplus,gaplus,usePDFAnzat, 0, true); // Evaluation of PDFs in z=1
+    set_pdf(p->F,xbplus,qbplus,qbarbplus,gbplus,usePDFAnzat, 0, true);
 
     for (int fl = 0; fl < Nflav; ++fl) fAB += (fl%2==0 ? gd : gu)*(2.*(log(MZ/muF)+log(1-z))*((1+z*z)*qa[fl]*qbarb[fl]/z-2.*qaplus[fl]*qbarbplus[fl])/(1-z));
     for (int fl = 0; fl < Nflav; ++fl) fAB += (fl%2==0 ? gd : gu)*(2.*(log(MZ/muF)+log(1-z))*((1+z*z)*qb[fl]*qbara[fl]/z-2.*qbaraplus[fl]*qbplus[fl])/(1-z)); //dbar quark
+    
+
+    //for (int fl = 0; fl < Nflav; ++fl) fAB += (fl%2==0 ? gd : gu)*(2.*(log(MZ/muF))*((1+z*z)*qa[fl]*qbarb[fl]/z-2.*qaplus[fl]*qbarbplus[fl])/(1-z));
+    //for (int fl = 0; fl < Nflav; ++fl) fAB += (fl%2==0 ? gd : gu)*(2.*(log(MZ/muF))*((1+z*z)*qb[fl]*qbara[fl]/z-2.*qbaraplus[fl]*qbplus[fl])/(1-z)); //dbar quark
+
+    //for (int fl = 0; fl < Nflav; ++fl) fAB += (fl%2==0 ? gd : gu)*2.*(log(1-z))*((1+z*z)*qa[fl]*qbarb[fl]/z-2.*qaplus[fl]*qbarbplus[fl])/(1-z);
+    //for (int fl = 0; fl < Nflav; ++fl) fAB += (fl%2==0 ? gd : gu)*2.*(log(1-z))*((1+z*z)*qb[fl]*qbara[fl]/z-2.*qbaraplus[fl]*qbplus[fl])/(1-z); 
     if(remove_charm_quark){
       fAB -= gu*(2.*(log(MZ/muF)+log(1-z))*((1+z*z)*qa[3]*qbarb[3]/z-2.*qaplus[3]*qbarbplus[3])/(1-z));
       fAB -= gu*(2.*(log(MZ/muF)+log(1-z))*((1+z*z)*qb[3]*qbara[3]/z-2.*qbaraplus[3]*qbplus[3])/(1-z));
     }
+    if(usePDFAnzat) fAB=(2.*(log(MZ/muF)+log(1-z))*((1+z*z)*qa[0]*qbarb[0]/z-2.*qaplus[0]*qbarbplus[0])/(1-z));
 	}
 
 	else if(Subproc==2) // For +-distribution 1D part of virtual corrections. !!Carefull xa and xb variables are replaced by z and y variables!!
   {
-    double z0=log(1-tau*exp(2*fabs(xa))); // Leftover factor to take into account the mismatch between the distribution and the integral range
+    double z0=log(1-tau*exp(2.*abs(xa))); // Leftover factor to take into account the mismatch between the distribution and the integral range
     double y=xa; // Renaming variable
     double xaplus=sqrt(tau)*exp(y); // xa for z=1
     double xbplus=sqrt(tau)*exp(-y); // xb for z=1
 
-    SetLHAPDF(p->F,xaplus,qa,qbara,ga); // Evaluation of PDFs in z=1
-    SetLHAPDF(p->F,xbplus,qb,qbarb,gb);
+    set_pdf(p->F,xaplus,qa,qbara,ga,usePDFAnzat, 0, true); // Evaluation of PDFs in z=1
+    set_pdf(p->F,xbplus,qb,qbarb,gb,usePDFAnzat, 0, true);
 		
-    for (int fl = 0; fl < Nflav; ++fl) fAB += (fl%2==0 ? gd : gu)*z0*(4*log(MZ/muF)+z0)*(qa[fl]*qbarb[fl]+qb[fl]*qbara[fl]);
+    for (int fl = 0; fl < Nflav; ++fl) fAB += (fl%2==0 ? gd : gu)*z0*(4.*log(MZ/muF)+2.*z0)*(qa[fl]*qbarb[fl]+qb[fl]*qbara[fl]);
+
+    //for (int fl = 0; fl < Nflav; ++fl) fAB += (fl%2==0 ? gd : gu)*z0*(4.*log(MZ/muF))*(qa[fl]*qbarb[fl]+qb[fl]*qbara[fl]);
+    //for (int fl = 0; fl < Nflav; ++fl) fAB += (fl%2==0 ? gd : gu)*z0*(2.*z0)*(qa[fl]*qbarb[fl]+qb[fl]*qbara[fl]);
+
     if(remove_charm_quark) fAB -= gu*z0*(4*log(MZ/muF)+z0)*(qa[3]*qbarb[3]+qb[3]*qbara[3]);
+    if(usePDFAnzat) fAB=z0*(4.*log(MZ/muF)+2.*z0)*(qa[0]*qbarb[0]);
   }
 
 
 	else if(Subproc==3) // For real corrections
 	{
-	  SetLHAPDF(p->F,xa,qa,qbara,ga); // PDFs with xa
-	  SetLHAPDF(p->F,xb,qb,qbarb,gb); // PDFs with xb
+	  set_pdf(p->F,xa,qa,qbara,ga,usePDFAnzat, 0, true); // PDFs with xa
+	  set_pdf(p->F,xb,qb,qbarb,gb,usePDFAnzat, 0, true); // PDFs with xb
    
     for (int fl = 0; fl < Nflav; ++fl) fAB += (fl%2==0 ? gd : gu)*(qa[fl]*gb+qb[fl]*ga+qbara[fl]*gb+qbarb[fl]*ga);
     if(remove_charm_quark) fAB -= gu*(qa[3]*gb+qb[3]*ga+qbara[3]*gb+qbarb[3]*ga);
+    if(usePDFAnzat) fAB=qa[0]*gb+qb[0]*ga;
+
 	}
 
 	else std::cout << "Label Error, please specify Born or Virtual (0), Virtual+ (1/2), Real (3)" << std::endl;
