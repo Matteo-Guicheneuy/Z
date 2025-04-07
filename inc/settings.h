@@ -23,7 +23,7 @@ void CloseFiles(std::vector<std::ofstream>&);
 std::complex<double> Psi(std::complex<double> );
 std::complex<double> HarmonicNumber(std::complex<double> );
 int coefBinomial(int n, int k);
-double derive_x_k(double (* f)(double x, int i0, const LHAPDF::PDF* F), double x, int i0, const LHAPDF::PDF* F, int k);
+double derive_x_k(double (* f)(double x, int i0, const LHAPDF::PDF* F), double x, int i0, const LHAPDF::PDF* F, double eps,int k);
 int indice(double x, double xmin, double xmax, int np);
 std::complex<double> pgamma(int m, std::complex<double> z);
 

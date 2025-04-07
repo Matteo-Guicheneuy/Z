@@ -24,9 +24,10 @@ double f_LHAPDF(double x, int i0, const LHAPDF::PDF* F)
 }
 
 double Set_f_LHAPDF(double &x, int i0, const LHAPDF::PDF* F, int k)
-{ 
+{ double eps=0.15*x;
+  //double eps=Eps*x;
   if(k==0) return f_LHAPDF(x, i0, F);
-  else return x*derive_x_k(f_LHAPDF,x,i0,F ,k);
+  else return x*derive_x_k(f_LHAPDF,x,i0,F , eps,k);
 }
 
 void set_pdf_LHAPDF(const LHAPDF::PDF* F , double &x, std::vector<double>& q, std::vector<double>& qbar, double &g, const bool usePDFAnzat, int k, bool num)
@@ -55,11 +56,12 @@ double fAnzat(double x, int i0, const LHAPDF::PDF* F)
 
 // Derivative of the PDF function at order k numericaly
 double F_real(const double &x, int i0, const LHAPDF::PDF* F, const bool usePDFAnzat, int k)
-{
+{ 
+  double eps=Eps*x;
   if (x>1-5.*Eps*x) return 0;
   else if(x<5.*Eps*x) return 0;
   if(k==0) return usePDFAnzat ? fAnzat(x, i0, F) : f(x, i0, F);
-  else return usePDFAnzat ? x*derive_x_k(fAnzat,x,i0,F,k) : x*derive_x_k(f,x,i0,F,k);
+  else return usePDFAnzat ? x*derive_x_k(fAnzat,x,i0,F, eps,k) : x*derive_x_k(f,x,i0,F, eps,k);
 }
 
 // Derivative of the PDF function at order k analiticaly
@@ -205,15 +207,14 @@ double Luminosity(const int &i, double &xa, double &xb, const LHAPDF::PDF* F,con
     
     
   }
-  else if (i==2 || i == 3 || i== 4 || i==5) // Second PDF trick
+  else if (i==2 || i == 3 || i== 4 || i==5 ) // Second PDF trick
   {
     std::vector<double> qa, qb, qbara, qbarb;
-    bool num=(i==2||i==3);
+    bool num=(i==2||i==3|| i== 4);
     set_pdf(F, xa, qa, qbara, ga, usePDFAnzat, k, num);
     set_pdf(F, xb, qb, qbarb, gb, usePDFAnzat, k, num);
     // Compute fAB contributions
     for (int fl = 0; fl < Nflav; ++fl) fAB += (fl%2==0 ? gd : gu)*(qq ? qa[fl]*qbarb[fl] + qb[fl]*qbara[fl] : qa[fl]*gb+qb[fl]*ga+qbara[fl]*gb+qbarb[fl]*ga) ;
-    
     // Remove charm quark
     if(remove_charm_quark) fAB-= gu*(qq ? qa[3]*qbarb[3] + qb[3]*qbara[3] : qa[3]*gb+qb[3]*ga+qbara[3]*gb+qbarb[3]*ga);
 
@@ -224,7 +225,7 @@ double Luminosity(const int &i, double &xa, double &xb, const LHAPDF::PDF* F,con
      info("xa = " + std::to_string(xa)  + "; xb = " + std::to_string(xb) + "; fAB = " + std::to_string(fAB));
   }
   // Output
-  return fAB;
+    return fAB;
 }
 std::complex<double> EvolOperator(const std::complex<double> &N, std::complex<double> &EigenV)
 {

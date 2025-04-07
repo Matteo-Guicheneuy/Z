@@ -55,13 +55,12 @@ double Resummed(double *x, size_t dim, void *prm,  bool usePDFtrick = false, int
     jac *= xa*xb*pow(log(tau),2.)*x[1];
     //(Not Useful)if(usePDFtrick && p->ic<=icut) xa=x[1], xb=x[2], jac = 0.5*(cos(Phi)+i*sin(Phi))*(1.+pow(tan(M_PI*x[0]/2.), 2)); 
     
-
     // If using PDF tricks, we use a different method for setting PDFs -> luminosity
     double fAB = Luminosity(p->xs_id, xa, xb, p->F,a, p->usePDFAnzat, true, k);
     double fABqg = Luminosity(p->xs_id, xa, xb, p->F ,a, p->usePDFAnzat, false, k);
 
     // Prefactor
-    if( p->xs_id==2 || p->xs_id==3 || p->xs_id==5) prefactor=pow(tau/xa/xb,-N-a)/xa/xb;
+    if( p->xs_id==2 || p->xs_id==3 || p->xs_id==4|| p->xs_id==5 ) prefactor=pow(tau/xa/xb,-N-a)/xa/xb;
     else prefactor=tau*pow(tau/xa/xb,-N);
     //Fake PDFs for the PDF trick
     g_12=pow(N+a,-2.*k);
@@ -69,8 +68,13 @@ double Resummed(double *x, size_t dim, void *prm,  bool usePDFtrick = false, int
     // Definiton of sigma_hat
     if(p->xs_id==2 || p->xs_id==5) sigma = 2.*M_PI*pow(MZ,-2)*set_hat_cross_section(N+a+1., p->xs_id);
     if(p->xs_id==3) sigma = 2.*M_PI*pow(MZ,-2)*set_hat_cross_section_Exp(N+a+1., p->xs_id);
-  
-    return std::imag(jac*prefactor*fAB*g_12*sigma);
+    if(p->xs_id==4){
+      sigma = 2.*M_PI*pow(MZ,-2)*set_hat_cross_section_Exp(N+a+1., p->xs_id)-set_hat_NLO_cross_section(N+a, prm, "qq");
+      sigmaqg = -set_hat_NLO_cross_section(N+a, prm, "qg");
+      //sigma = set_hat_NLO_cross_section(N+a, prm, "qq");
+      //sigmaqg = set_hat_NLO_cross_section(N+a, prm, "qg");
+    }
+    return std::imag(jac*prefactor*g_12*(fAB*sigma+sigmaqg*fABqg));
   }
   else // Resum with Mellin PDF
   {
@@ -80,18 +84,22 @@ double Resummed(double *x, size_t dim, void *prm,  bool usePDFtrick = false, int
     // Evaluate sigma based on NLO conditions
     bool collinear=false;
 
-    if (p->xs_id==5){
+    if (p->xs_id==6){
         sigma = 2.*M_PI*pow(MZ,-2)*set_hat_cross_section(N+1., p->xs_id, collinear);
         pdf_evolution=true;
       }
-    else if (p->xs_id==6){
+    else if (p->xs_id==7){
         sigma = 2.*M_PI*pow(MZ,-2)*set_hat_cross_section_Exp(N+1., p->xs_id, collinear);
         if(collinear) sigmaqg=conversion_factor*sigma0;
       }
-    else if (p->xs_id==7){
+    else if (p->xs_id==8){
       sigma=set_hat_NLO_cross_section(N, prm, "qq");
       sigmaqg = set_hat_NLO_cross_section(N, prm, "qg");
       }
+      else if (p->xs_id==9){
+        sigma= 2.*M_PI*pow(MZ,-2)*set_hat_cross_section_Exp(N+1., p->xs_id, collinear)-set_hat_NLO_cross_section(N, prm, "qq");
+        sigmaqg = set_hat_NLO_cross_section(N, prm, "qg");
+        }
     // Calculate fAB the luminosity
     std::complex<double> fqq= MLuminosity(N+1., p->usePDFAnzat,"qq",(collinear && pdf_evolution));
     std::complex<double> fqg= MLuminosity(N+1., p->usePDFAnzat,"qg");
@@ -233,10 +241,9 @@ double Tot(double *x, size_t dim, void *prm)
   {
     case 0: return Born(x, dim, prm);
     case 1: return NLO_cross_section(x, dim, prm);
-    case 2: case 3: return Resummed(x, dim, prm, true, 2); 
-    case 4: return Expansion_test(x, dim, prm, 0); 
-    case 5: case 6: return Resummed(x, dim, prm);
-    case 7: return Resummed(x, dim, prm) ;
+    case 2: case 3: case 4: return Resummed(x, dim, prm, true, 2); 
+    case 5: return Expansion_test(x, dim, prm, 0); 
+    case 6: case 7: case 8: case 9: return Resummed(x, dim, prm);
     default:
         error("Invalid Process ID: ID = " + std::to_string(p->xs_id));
         return 0.; // Unreachable, but avoids compiler warnings

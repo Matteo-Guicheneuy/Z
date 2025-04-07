@@ -4,7 +4,7 @@
 // -------- Standard headers -------------------------- //
 #include <fstream>        // File streams               //
 #include <cstring>        // In/Out streams             //
-#include <cmath>      	// Mathematical functions       //
+#include <cmath>      	  // Mathematical functions     //
 #include <math.h>
 #include <complex>
 #include <gsl/gsl_sf_psi.h>
@@ -141,13 +141,13 @@ double derivk(double (* f)(double x, int i0, const LHAPDF::PDF* F), double x, in
     }
 }
 
-double derive_x_k(double (* f)(double x, int i0, const LHAPDF::PDF* F), double x, int i0, const LHAPDF::PDF* F, int k)
+double derive_x_k(double (* f)(double x, int i0, const LHAPDF::PDF* F), double x, int i0, const LHAPDF::PDF* F, double epsilon,int k)
 { //k: order of derivative
   //For derivativ:
   //n=-1 backwar 
   //n=0 central 
   //n=1 forward
-  double eps=x*Eps;
+  double eps=epsilon;
   switch(k)
   {
     case 1: return f(x, i0, F)+x*derivk(f, x, i0, F,eps, 1);

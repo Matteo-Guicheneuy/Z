@@ -9,8 +9,11 @@
 #include "process.h"                                    //
 
 // -------- Functions --------------------------------- //
-double F_real(const double &, int,const bool, int);
+
 double F_real_bis(const double &, int,const bool, int);
+double Set_f_LHAPDF(double &x, int i0, const LHAPDF::PDF* F, int k);
+double F_real(const double &x, int i0, const LHAPDF::PDF* F, const bool usePDFAnzat, int k);
+
 void set_pdf(int i, const double &x, std::vector<double>& q, std::vector<double>& qbar, double &g, const bool usePDFAnzat, int k, bool num);
 void set_pdfN(const std::complex<double>& N, std::vector<std::complex<double>>& q, std::vector<std::complex<double>>& qbar, std::complex<double>& g, const bool usePDFAnzat);
 double Luminosity(const int &, double &, double &, const LHAPDF::PDF* F,const double &,const bool, bool, int);

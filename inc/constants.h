@@ -36,7 +36,11 @@ const int Nflav= usePDFAnzat ? 1 : 5;
 const double Pi= M_PI;
 const double EulerGamma = 0.577215664901;
 // Precision for numerical derivative
-const double Eps = 0.0000001;
+const double Eps = 0.00001;
+//const double Eps = 0.01;
+//const double Eps = 0.1;
+
+
 
 // Mellin space constants
 const double beta0 = 23./6.;

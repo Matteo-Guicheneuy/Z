@@ -57,13 +57,13 @@ int main(int argc, char* argv[])
   // Output file handling
   std::vector<std::string> filenames =
   {
-    "LOXsec.txt", "NLOXsec.txt", "ResumXsec_C.txt", "ExpandedXsec.txt",
-    "ResumXsec_Mellin.txt", "ResumXsec_Analitic.txt", "test.txt", "test2.txt","all.txt", "int_res.txt"
+    "LOXsec.txt", "NLOXsec.txt", "ResumXsec_C.txt", "ExpandedXsec.txt","Exp_NLOXsec.txt", "Exp_NLO_errXsec.txt",
+    "Resum_ExpXsec.txt", "ResumXsec_Mellin.txt", "Exp_Mellin.txt","NLOXsec_Mel.txt","Exp_NLOXsec_Mel.txt","Exp_NLO_errXsec_Mel.txt", "int_res.txt","testx.txt", "testy.txt", "testybis.txt"
   };
   std::vector<std::ofstream> files(filenames.size());
   OpenFiles(files, filenames);
   // Integration precision
-  double precision_target = 5.e-4;
+  double precision_target = 5.e-3;
 // Use Pdf Anzat or not:look at main.h;
 // AlphaS test :
   double Alpha_S[]={0.000118, 0.00118, 0.0118, 0.118};
@@ -74,8 +74,28 @@ int main(int argc, char* argv[])
   //std::flush(files[6]);
   //files[7] <<  "[ ";
   //std::flush(files[7]);
-  // Main computation loop
-  for (int ic=9; ic<=18; ++ic)// For all the different center of mass energy
+ //  Main computation loop
+
+  if(false ){
+  Process* proc = new Process(argv[1], sc, 1, 4, usePDFAnzat);
+  Process *p = (Process *)proc;
+
+  for(int i=1; i<=7; i++){
+  for(double j=1.; j<=200.; ++j){
+    double x=j/200.;
+    files[13] << x << ", " ;
+    files[14] << Set_f_LHAPDF(x, i, p->F, 2) << ", ";
+    files[15] << F_real(x, i, p->F, usePDFAnzat ,2) << ", ";
+  }
+  }
+  files[13] << std::endl;
+  files[14] << std::endl;
+  files[15] << std::endl;
+
+  exit(0);
+}
+
+  for (int ic=3; ic<=18; ++ic)// For all the different center of mass energy
   {     
     //for(int j=0; j<=3; j++){
       //files[6] <<  "[ ";
@@ -84,14 +104,18 @@ int main(int argc, char* argv[])
       //std::cout << "alpha_S= " << AlphaS << std::endl;
     //sc = s0 * pow(sf / s0, 1.0 * ic / nsteps);// square root of the center of mass energy
     sc = Sc[ic];
-    double res0=0., err0=0., res1 = 0, err1 = 0, res2 = 0, err2 = 0, res3 = 0, err3 = 0, res4=0, err4=0, res5=0., err5=0., res6=0., err6=0., res7=0., err7=0.;
-    for (int kID=0; kID<=7; ++kID)//For all the different processes
+    double res0=0., err0=0., res1 = 0, err1 = 0, res2 = 0, err2 = 0, res3 = 0, err3 = 0, res4=0, err4=0, res5=0., err5=0., res6=0., err6=0., res7=0., err7=0.,res8=0., err8=0., res9=0., err9=0.;
+    for (int kID=1; kID<=8; ++kID)//For all the different processes
     { // kiD = 0 LO Calculation
       // kiD = 1 NLO Calculation
-      // kiD = 2 Calculation at NLO+NLL with PDF Trick numerical seconde derivative
-      // kiD = 3 Calculation at Expended NLO+NLL with PDF Trick numerical seconde derivative
-      // kiD = 4 Calculation at NLO+NLL with PDF Trick in Mellin space
-      // kiD = 5 Calculation at NLO+NLL with PDF Trick analytic seconde derivative
+      // kiD = 2 Calculation at Resumed(NLO+NLL)  with PDF Trick numerical seconde derivative
+      // kiD = 3 Calculation at Expended with PDF Trick numerical seconde derivative
+      // kiD = 4 Calculation at Expended-NLO with PDF Trick numerical seconde derivative
+      // kiD = 5 Calculation at Resumed-Expanded with PDF PDF Trick numerical seconde derivative
+      // kId = 6 Calculation at Resumed(NLO+NLL) with PDF in Mellin space
+      // kId = 7 Calculation at Expanded with PDF in Mellin space
+      // kId = 8 Calculation at NLO with PDF  in Mellin space
+      // kId = 9 Calculation at Expanded-NLO with PDF  in Mellin space
       // Initialisation
       auto start = std::chrono::high_resolution_clock::now();
       Process* proc = new Process(argv[1], sc, kID, ic, usePDFAnzat);
@@ -105,22 +129,12 @@ int main(int argc, char* argv[])
       else if (kID==1)PerformIntegration(res1, err1, chi, proc, 2, precision_target); 
       //else if (kID == 2) PerformIntegration(res2, err2, chi, proc, 3, precision_target);
       //else if (kID == 3) PerformIntegration(res3, err3, chi, proc, 3, precision_target);
-      //else if (kID == 4) PerformIntegration(res4, err4, chi, proc, 1, precision_target);
-      //else if (kID == 5) PerformIntegration(res5, err5, chi, proc, 1, precision_target);
+      else if (kID == 4) PerformIntegration(res4, err4, chi, proc, 3, precision_target);
+      //else if (kID == 5) PerformIntegration(res5, err5, chi, proc, 3, precision_target);
       //else if (kID == 6) PerformIntegration(res6, err6, chi, proc, 1, precision_target);
-      else if (kID==7) PerformIntegration(res7, err7, chi, proc, 1, precision_target);
-      // Output file handling
-      switch (kID)
-      {
-        case 0: files[0] << res << "," << sc << std::endl; break;
-        case 1: files[1] << res1 << "," << sc << std::endl; break;
-        case 2: files[2] << res2 << "," << sc << std::endl; break;
-        case 3: break;//files[3] << res3 << "," << sc << std::endl; break;
-        case 4: break;//files[4] << res4 << "," << sc << std::endl; break;
-        case 5: files[5] << res << "+/-" << err << "," << sc << std::endl; break;
-        case 6: case 7: break;
-        default: error("Invalid Process ID: kID=" + std::to_string(kID));
-      }
+      //else if (kID==7) PerformIntegration(res7, err7, chi, proc, 1, precision_target);
+      //else if (kID==8) PerformIntegration(res8, err8, chi, proc, 1, precision_target);
+      //else if (kID==9) PerformIntegration(res9, err9, chi, proc, 1, precision_target);
 
       // Timer
       auto stop = std::chrono::high_resolution_clock::now();
@@ -133,28 +147,28 @@ int main(int argc, char* argv[])
       std::cout << "sc= " << sc << " AlphaS= " << AlphaS << std::endl;
       std::cout << "Born= " << res0 << " err= " << err0 << std::endl;
       std::cout << "NLO_xspace= " << res1 << " err= " << err1 << std::endl;
-      std::cout << "NLO_Mellin= " << res7 << " err= " << err7 << std::endl;
-      std::cout << "Diff= " << res7-res1 << " err= " << err7 << std::endl;
       std::cout << "NLL_num= " << res2 << " err= " << err2 << std::endl;
       std::cout << "NLL_exp= " << res3 << " err= " << err3 << std::endl;
-      std::cout << "NLL_Mel= " << res5 << " err= " << err5 << std::endl;
-      std::cout << "Exp_Mel= " << res6 << " err= "  << err6 << std::endl;
-      std::cout << std::abs((res6-res1)/res0)<< std::endl;
-      std::cout << std::abs((res3-res1)/res0)  << std::endl;
-      files[6] << "sc= " << sc << " AlphaS= " << AlphaS << std::endl;
-      files[6] << "Born= " << res0 << " err= " << err0 << std::endl;
-      files[6] << "NLO= " << res1 << " err= " << err1 << std::endl;
-      files[6] << "NLO_Mellin= " << res7 << " err= " << err7 << std::endl;
-      //files[6] << "NLL_num= " << res2 << " err= " << err2 << std::endl;
-      //files[6] << "NLL_exp= " << res3 << " err= " << err3 << std::endl;
-      files[6] << "NLL_Mel= " << res5 << " err= " << err5 << std::endl;
-      files[6] << "Exp_Mel= " << res6 << " err= "  << err6 << std::endl;
-      //files[6] << "(Exp_Mel-NLO)/LO= " <<std::abs((res3-Nlo[ic])/(res3+Nlo[ic]))<< std::endl;
-      files[6] << "(Exp-NLO)/LO= " <<std::abs((res3-res1)/(res3+res1)) << std::endl;
-      //files[6] << "(Exp_Mel-NLO)/LO= " <<std::abs((res6-Nlo[ic])/(res6+Nlo[ic]))<< std::endl;
-      //files[6] << "(Exp_Mel-NLO)/LO= " <<std::abs((res6-res1)/(res6+res1))<< std::endl;
-      files[3] << ((res3+5.0*err3+5.0*err1-res1)/(res3+res1)) << "," << std::endl;
-      files[4] << ((res3-5.0*err3-5.0*err1-res1)/(res3+res1)) << "," << std::endl;
+      //std::cout << "Exp-NLO= " << res4 << " err= " << err4 << std::endl;
+      std::cout << "Exp-NLO/NLO= " << res4/res1 << " err= " << err4 << std::endl;
+      std::cout << "Resum-Exp= " << res5 << " err= " << err5 << std::endl;
+      std::cout << "Resum_Mellin= " << res6 << " err= " << err6 << std::endl;
+      std::cout << "Exp_Mellin= " << res7 << " err= " << err7 << std::endl;
+      std::cout << "NLO_Mellin= " << res8<< " err= "  << err8 << std::endl;
+      std::cout << "Exp-NLO_Mellin= " << res9<< " err= "  << err9 << std::endl;
+      files[0] << res0 << "," << std::endl;
+      files[1] << res1 << "," << std::endl;
+      files[2] << res2 << "," << std::endl;
+      files[3] << res3 << "," << std::endl;
+      files[4] << res4/res1 << "," << std::endl;
+      files[5] << 5.*err4/res1 << "," << std::endl;
+      files[6] << res5 << "," << std::endl;
+      files[7] << res6 << "," << std::endl;
+      files[8] << res7 << "," << std::endl;
+      files[9] << res8 << "," << std::endl;
+      files[10] << res9/res8 << "," << std::endl;
+      files[11] << 5.*err9/res8 << "," << std::endl;
+     
  
   }
 
